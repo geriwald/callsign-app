@@ -1,20 +1,37 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { api, type InvitationPreview } from "@/lib/api";
 import { rememberPendingHandle } from "@/lib/pending-handle";
-import { rememberReturnPath } from "@/lib/return-path";
+import { isLocalPath, rememberReturnPath } from "@/lib/return-path";
 import { site } from "@/lib/site";
 import { Button, ErrorNote, Field, Input } from "../ui";
 
 export function LoginForm() {
+  const router = useRouter();
   const params = useSearchParams();
   const claim = params.get("handle")?.replace(/^@/, "").toLowerCase();
   const next = params.get("next");
   const connecting = next?.startsWith("/oauth/") ?? false;
   const invite = params.get("invite");
   const [invitation, setInvitation] = useState<InvitationPreview | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // Same destination as after a magic-link sign-in, so a signed-in visitor skips the email.
+  useEffect(() => {
+    api("/v1/me").then(
+      () =>
+        router.replace(
+          next && isLocalPath(next)
+            ? next
+            : claim
+              ? `/dashboard?claim=${encodeURIComponent(claim)}`
+              : "/dashboard",
+        ),
+      () => setCheckingSession(false),
+    );
+  }, [router, next, claim]);
 
   useEffect(() => {
     if (!invite) return;
@@ -43,6 +60,8 @@ export function LoginForm() {
       setSending(false);
     }
   }
+
+  if (checkingSession) return null;
 
   if (sentTo) {
     return (

@@ -1,6 +1,6 @@
 const KEY = "callsign:return-path";
 
-function isLocalPath(path: string): boolean {
+export function isLocalPath(path: string): boolean {
   return path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\");
 }
 
