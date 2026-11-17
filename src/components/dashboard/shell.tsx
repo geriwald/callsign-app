@@ -6,7 +6,7 @@ import { useState, type ReactNode } from "react";
 import { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
 import { Logo, LogoMark } from "../logo";
-import { RelaisFooter } from "../relais";
+import { InstanceFooter } from "../instance";
 import { Badge, Button } from "../ui";
 import { usePendingApprovals } from "./approvals";
 import { useOwner } from "./hooks";
@@ -83,7 +83,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">{children}</main>
-      <RelaisFooter />
+      <InstanceFooter />
     </div>
   );
 }

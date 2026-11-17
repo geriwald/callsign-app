@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
-import { RelaisWelcome } from "@/components/relais";
+import { InstanceWelcome } from "@/components/instance";
 
 export const metadata: Metadata = { title: "Sign in · Callsign" };
 
 export default function LoginPage() {
   return (
     <>
-      <RelaisWelcome />
+      <InstanceWelcome />
       <Suspense>
         <LoginForm />
       </Suspense>
