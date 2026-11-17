@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
+import { RelaisFooter } from "@/components/relais";
 import { site } from "@/lib/site";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -13,6 +14,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <main className="flex flex-1 items-center justify-center pb-24">
         <div className="w-full max-w-sm">{children}</div>
       </main>
+      <RelaisFooter />
     </div>
   );
 }
