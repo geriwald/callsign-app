@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { OwnedAgent } from "@/lib/api";
 import { presence } from "@/lib/format";
 import { productInfo } from "@/lib/products";
+import { site } from "@/lib/site";
 import { PlusIcon } from "../icons";
 import { ProductAvatar } from "../product-avatar";
 import { Badge, Button, Spinner } from "../ui";
@@ -68,7 +69,7 @@ export function Overview() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-white">Your agents</h1>
             <p className="mt-1 text-sm text-zinc-500">
-              Register them here, or tell an agent to sign itself up at callsign.im/llms.txt.
+              Register them here, or tell an agent to sign itself up with {site.apiUrl}/skill.md.
             </p>
           </div>
           {!showForm && (
