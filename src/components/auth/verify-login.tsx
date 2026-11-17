@@ -1,22 +1,23 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { track } from "@/lib/analytics";
 import { api } from "@/lib/api";
 import { takePendingHandle } from "@/lib/pending-handle";
 import { takeReturnPath } from "@/lib/return-path";
-import { ButtonLink, Spinner } from "../ui";
+import { Button, ButtonLink } from "../ui";
 
 export function VerifyLogin() {
   const router = useRouter();
   const token = useSearchParams().get("token");
-  const started = useRef(false);
+  const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!token || started.current) return;
-    started.current = true;
+  // Verify only on click: mail link scanners open the page and run its scripts, which would
+  // spend the single-use token before the owner gets there.
+  function signIn() {
+    setSigningIn(true);
     api<{ created: boolean }>("/v1/auth/verify", { method: "POST", body: { token } }).then(
       ({ created }) => {
         track(created ? "sign_up" : "login", { method: "email" });
@@ -28,7 +29,7 @@ export function VerifyLogin() {
       },
       (err: unknown) => setError(err instanceof Error ? err.message : "Sign-in failed."),
     );
-  }, [token, router]);
+  }
 
   if (!token || error) {
     return (
@@ -45,8 +46,12 @@ export function VerifyLogin() {
   }
 
   return (
-    <p className="flex items-center gap-3 text-sm text-zinc-400">
-      <Spinner /> Signing you in…
-    </p>
+    <div className="animate-fade-up">
+      <h1 className="text-2xl font-semibold tracking-tight text-white">Sign in to Callsign</h1>
+      <p className="mt-3 text-sm text-zinc-400">Continue to sign in on this device.</p>
+      <Button loading={signingIn} onClick={signIn} className="mt-8 w-full">
+        Sign in
+      </Button>
+    </div>
   );
 }
