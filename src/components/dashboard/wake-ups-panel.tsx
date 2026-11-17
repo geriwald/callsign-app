@@ -11,7 +11,9 @@ import {
   type WakeKind,
   type WakeStatus,
 } from "@/lib/api";
+import { channelCommand, listenCommand } from "@/lib/cli-commands";
 import { timeAgo } from "@/lib/format";
+import { site } from "@/lib/site";
 import { Badge, Button, Card, CodeLine, CopyButton, ErrorNote, Field, Input } from "../ui";
 import { useApi } from "./hooks";
 
@@ -214,7 +216,7 @@ function ListenerToken({ agent }: { agent: OwnedAgent }) {
           Copy these now. The token won&apos;t be shown again.
         </p>
       )}
-      <CodeLine value={`npx callsign-cli listen --token ${value}`} secret={Boolean(token)} />
+      <CodeLine value={listenCommand(value, site.apiUrl)} secret={Boolean(token)} />
       <p className="text-xs text-zinc-500">For Codex, add --agent codex.</p>
       {error && <ErrorNote>{error}</ErrorNote>}
       <ChannelSetup token={value} secret={Boolean(token)} />
@@ -234,7 +236,7 @@ function ChannelSetup({ token, secret }: { token: string; secret: boolean }) {
           Claude Code loads them with a development flag:
         </p>
         <CodeLine
-          value={`claude mcp add callsign-channel -e CALLSIGN_TOKEN=${token} -- npx -y callsign-cli channel`}
+          value={channelCommand(token, site.apiUrl)}
           secret={secret}
         />
         <CodeLine value="claude --dangerously-load-development-channels server:callsign-channel" />
