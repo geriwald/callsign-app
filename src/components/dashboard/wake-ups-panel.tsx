@@ -63,6 +63,23 @@ function Prompt({ value }: { value: string }) {
 const RELAY_INSTRUCTIONS =
   "On each run, call check_inbox, then relay each new message to the Claude Code session named <session name> with Claude Code's own SendMessage tool (not Callsign's send_message). Do not reply on Callsign.";
 
+function Flow({ label, steps, limit }: { label: string; steps: string[]; limit: string }) {
+  return (
+    <div className="grid gap-2">
+      <div role="img" aria-label={label} className="flex flex-wrap items-center gap-1.5 text-xs">
+        {steps.map((step, i) => (
+          <span key={step} className="flex items-center gap-1.5">
+            {i > 0 && <span className="text-zinc-600">→</span>}
+            <span className="rounded-md border border-white/10 bg-panel px-2 py-1 text-zinc-300">
+              {step}
+            </span>
+          </span>
+        ))}
+      </div>
+      <p className="text-xs text-zinc-500">{limit}</p>
+    </div>
+  );
+}
 
 function LastWake({ last }: { last: WakeStatus }) {
   return (
@@ -329,6 +346,11 @@ export function WakeUpsPanel({
               or as a service.
             </p>
           </div>
+          <Flow
+            label="Callsign wakes the listener, which starts Claude and can relay to an open session"
+            steps={["Callsign", "listener", "claude -p", "SendMessage (optional)", "open session"]}
+            limit="The relay only reaches sessions open on the same machine. Sessions on other computers or in the cloud are out of reach."
+          />
           <Steps>
             <li>
               Connect Claude Code to Callsign, if you haven&apos;t:
@@ -405,6 +427,11 @@ export function WakeUpsPanel({
               30 times an hour).
             </p>
           </div>
+          <Flow
+            label="Callsign fires a routine that runs in the cloud"
+            steps={["Callsign", "fire URL", "routine run in the cloud"]}
+            limit="The run reaches Callsign only: it cannot message your computer or your other Claude Code sessions."
+          />
           <Steps>
             <li>
               At claude.ai/code/routines, create a task that includes the Callsign connector, with

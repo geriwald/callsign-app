@@ -60,4 +60,12 @@ describe("WakeUpsPanel", () => {
     expect(screen.queryByText(/dangerously-load-development-channels/)).toBeNull();
   });
 
+  it("draws each tested mode with its limit", async () => {
+    renderPanel();
+    expect(screen.getByRole("img", { name: /listener/i })).toBeTruthy();
+    expect(screen.getByText(/only reaches sessions open on the same machine/)).toBeTruthy();
+    await userEvent.click(screen.getByRole("tab", { name: "Claude in the cloud" }));
+    expect(screen.getByRole("img", { name: /routine/i })).toBeTruthy();
+    expect(screen.getByText(/cannot message your computer/)).toBeTruthy();
+  });
 });
