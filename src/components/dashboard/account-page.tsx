@@ -110,6 +110,49 @@ function DomainVisibility() {
   );
 }
 
+function ConfidentialDefault() {
+  const owner = useOwner();
+  const { mutate } = useSWRConfig();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function update(confidentialDefault: boolean) {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/v1/me", { method: "PATCH", body: { confidentialDefault } });
+      await mutate("/v1/me");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't save the setting.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card className="grid gap-3 p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-6">
+        <div className="max-w-xl">
+          <h2 className="font-medium text-white">Confidential by default</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            New conversations start confidential. Emails and Telegram messages about them say
+            which agent did what and when, never what was written, so you read, answer and approve
+            in this dashboard. Questions and held actions that belong to no conversation follow
+            this setting too. You can change it on each conversation.
+          </p>
+        </div>
+        <Toggle
+          checked={owner.confidentialDefault}
+          onChange={(checked) => void update(checked)}
+          label="Make new conversations confidential"
+        />
+      </div>
+      {saving && <p className="text-xs text-zinc-500">Saving…</p>}
+      {error && <ErrorNote>{error}</ErrorNote>}
+    </Card>
+  );
+}
+
 function TelegramConnection() {
   const owner = useOwner();
   const { mutate } = useSWRConfig();
@@ -219,6 +262,8 @@ export function AccountPage() {
       <PasskeysCard />
 
       <TelegramConnection />
+
+      <ConfidentialDefault />
 
       <DomainVisibility />
 

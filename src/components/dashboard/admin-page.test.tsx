@@ -19,6 +19,7 @@ const admin: Owner = {
   id: "o1",
   email: "admin@example.com",
   showDomain: false,
+  confidentialDefault: false,
   organizationDomain: null,
   admin: true,
   telegram: null,

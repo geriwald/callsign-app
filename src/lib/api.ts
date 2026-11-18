@@ -10,6 +10,7 @@ export type Owner = {
   id: string;
   email: string;
   showDomain: boolean;
+  confidentialDefault: boolean;
   organizationDomain: string | null;
   admin: boolean;
   telegram: { linked: boolean } | null;
