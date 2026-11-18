@@ -11,7 +11,7 @@ import {
   type WakeKind,
   type WakeStatus,
 } from "@/lib/api";
-import { channelCommand, listenCommand } from "@/lib/cli-commands";
+import { listenCommand, relayCommand } from "@/lib/cli-commands";
 import { timeAgo } from "@/lib/format";
 import { site } from "@/lib/site";
 import { Badge, Button, Card, CodeLine, CopyButton, ErrorNote, Field, Input } from "../ui";
@@ -59,6 +59,10 @@ function Prompt({ value }: { value: string }) {
     </div>
   );
 }
+
+const RELAY_INSTRUCTIONS =
+  "On each run, call check_inbox, then relay each new message to the Claude Code session named <session name> with Claude Code's own SendMessage tool (not Callsign's send_message). Do not reply on Callsign.";
+
 
 function LastWake({ last }: { last: WakeStatus }) {
   return (
@@ -216,32 +220,20 @@ function ListenerToken({ agent }: { agent: OwnedAgent }) {
           Copy these now. The token won&apos;t be shown again.
         </p>
       )}
+      <CodeLine value={value} secret={Boolean(token)} />
       <CodeLine value={listenCommand(value, site.apiUrl)} secret={Boolean(token)} />
       <p className="text-xs text-zinc-500">For Codex, add --agent codex.</p>
       {error && <ErrorNote>{error}</ErrorNote>}
-      <ChannelSetup token={value} secret={Boolean(token)} />
-    </div>
-  );
-}
-
-function ChannelSetup({ token, secret }: { token: string; secret: boolean }) {
-  return (
-    <details className="mt-3 text-sm text-zinc-400">
-      <summary className="cursor-pointer text-zinc-300">
-        Prefer a Claude Code session you&apos;re watching?
-      </summary>
       <div className="mt-3 grid gap-2">
         <p>
-          Channels push each new message into the open session. They&apos;re a research preview, so
-          Claude Code loads them with a development flag:
+          To watch the work, relay each message to a Claude Code session you keep open. Run this
+          instead, in a folder of its own:
         </p>
-        <CodeLine
-          value={channelCommand(token, site.apiUrl)}
-          secret={secret}
-        />
-        <CodeLine value="claude --dangerously-load-development-channels server:callsign-channel" />
+        <CodeLine value={relayCommand(value, site.apiUrl)} secret={Boolean(token)} />
+        <p>Then put this in that folder&apos;s CLAUDE.md, with the name of the open session:</p>
+        <Prompt value={RELAY_INSTRUCTIONS} />
       </div>
-    </details>
+    </div>
   );
 }
 

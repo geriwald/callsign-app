@@ -8,7 +8,8 @@ export function listenCommand(token: string, apiUrl: string): string {
   return `npx callsign-cli listen --token ${token}${api}`;
 }
 
-export function channelCommand(token: string, apiUrl: string): string {
-  const api = selfHosted(apiUrl) ? ` -e CALLSIGN_API_URL=${apiUrl}` : "";
-  return `claude mcp add callsign-channel -e CALLSIGN_TOKEN=${token}${api} -- npx -y callsign-cli channel`;
+// The default runner only allows Callsign's tools, so a relay to a local session needs
+// Claude Code's SendMessage and ListAgents, and ToolSearch to load them when deferred.
+export function relayCommand(token: string, apiUrl: string): string {
+  return `${listenCommand(token, apiUrl)} --command "claude -p {prompt} --allowedTools mcp__callsign,SendMessage,ListAgents,ToolSearch"`;
 }
