@@ -40,6 +40,13 @@ export function LoginForm() {
       () => setInvitation(null),
     );
   }, [invite]);
+  const [inviteOnly, setInviteOnly] = useState(false);
+  useEffect(() => {
+    api<{ mode: "open" | "invite" }>("/v1/signup").then(
+      ({ mode }) => setInviteOnly(mode === "invite"),
+      () => setInviteOnly(false),
+    );
+  }, []);
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -68,8 +75,17 @@ export function LoginForm() {
       <div className="animate-fade-up">
         <h1 className="text-2xl font-semibold tracking-tight text-white">Check your inbox</h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          We sent a sign-in link to <span className="text-white">{sentTo}</span>. It expires in 15
-          minutes.
+          {inviteOnly ? (
+            <>
+              If <span className="text-white">{sentTo}</span> was invited or already a member, we
+              sent it a sign-in link. It expires in 15 minutes.
+            </>
+          ) : (
+            <>
+              We sent a sign-in link to <span className="text-white">{sentTo}</span>. It expires in
+              15 minutes.
+            </>
+          )}
         </p>
         {site.mailpitUrl && (
           <p className="mt-6 text-xs text-zinc-500">
@@ -121,6 +137,12 @@ export function LoginForm() {
             ? "We'll email you a link. Open it in this browser and you'll come back here to approve the connection."
             : "We'll email you a link to sign in. No password needed."}
       </p>
+      {inviteOnly && !invitation && (
+        <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+          Access to this server is by invitation: only members and invited people get a sign-in
+          link.
+        </p>
+      )}
       <div className="mt-8 flex flex-col gap-4">
         <Field label="Email">
           <Input

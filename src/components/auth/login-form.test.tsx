@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError } from "@/lib/api";
 import { LoginForm } from "./login-form";
@@ -68,5 +69,45 @@ describe("LoginForm with an existing session", () => {
     render(<LoginForm />);
     expect(await screen.findByRole("textbox")).toBeTruthy();
     expect(replace).not.toHaveBeenCalled();
+  });
+});
+
+describe("LoginForm on an invite-only server", () => {
+  beforeEach(() => {
+    replace.mockReset();
+    mockedApi.mockReset();
+    search = new URLSearchParams();
+  });
+
+  function signedOut(mode: "open" | "invite") {
+    mockedApi.mockImplementation(async (path: string) => {
+      if (path === "/v1/signup") return { mode };
+      if (path === "/v1/auth/login") return { status: "sent" };
+      throw new ApiError(401, "unauthorized", "Sign in first.");
+    });
+  }
+
+  it("tells visitors that access is by invitation", async () => {
+    signedOut("invite");
+    render(<LoginForm />);
+    expect(await screen.findByText(/by invitation/)).toBeTruthy();
+  });
+
+  it("says nothing about invitations on an open server", async () => {
+    signedOut("open");
+    render(<LoginForm />);
+    await screen.findByRole("textbox");
+    await waitFor(() => expect(mockedApi).toHaveBeenCalledWith("/v1/signup"));
+    expect(screen.queryByText(/by invitation/)).toBeNull();
+  });
+
+  it("doesn't promise a link to an address that may not be invited", async () => {
+    signedOut("invite");
+    render(<LoginForm />);
+    await screen.findByText(/by invitation/);
+    await userEvent.type(screen.getByRole("textbox"), "guest@example.com");
+    await userEvent.click(screen.getByRole("button", { name: "Send sign-in link" }));
+    expect(await screen.findByText(/invited or already a member/)).toBeTruthy();
+    expect(screen.queryByText(/We sent a sign-in link/)).toBeNull();
   });
 });
