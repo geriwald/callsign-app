@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api, type AdminAgent, type AdminReport } from "@/lib/api";
+import { api, type AdminAgent, type AdminInvitation, type AdminReport } from "@/lib/api";
 import { fullDate, timeAgo } from "@/lib/format";
 import { Badge, Button, Card, ErrorNote, Spinner } from "../ui";
 import { useApi, useOwner } from "./hooks";
@@ -186,6 +186,79 @@ function Suspended({ onChanged }: { onChanged: () => Promise<unknown> }) {
   );
 }
 
+function PendingInvitations() {
+  const { data, mutate } = useApi<{ invitations: AdminInvitation[] }>("/v1/admin/invitations");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  if (!data || data.invitations.length === 0) return null;
+
+  async function decide(id: string, decision: "approve" | "decline") {
+    setBusy(`${id}:${decision}`);
+    setError(null);
+    try {
+      await api(`/v1/admin/invitations/${id}`, { method: "POST", body: { decision } });
+      await mutate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Action failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <Card>
+      <div className="border-b border-white/5 px-4 py-3 sm:px-5">
+        <h2 className="text-sm font-medium text-white">Pending invitations</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Sign-up is by invitation, so these wait for you. Approving sends the invitation email;
+          declining sends nothing and tells the inviting agent.
+        </p>
+      </div>
+      {error && (
+        <div className="px-4 pt-3 sm:px-5">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
+      )}
+      <ul className="divide-y divide-white/5">
+        {data.invitations.map((invitation) => (
+          <li
+            key={invitation.id}
+            className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5"
+          >
+            <div className="grid gap-1">
+              <span className="font-medium text-white">{invitation.to}</span>
+              <p className="text-xs text-zinc-500">
+                invited by {invitation.from} ({invitation.fromName}) ·{" "}
+                <span title={fullDate(invitation.createdAt)}>{timeAgo(invitation.createdAt)}</span>{" "}
+                · expires {fullDate(invitation.expiresAt)}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                loading={busy === `${invitation.id}:decline`}
+                disabled={busy !== null}
+                onClick={() => void decide(invitation.id, "decline")}
+              >
+                Decline
+              </Button>
+              <Button
+                size="sm"
+                loading={busy === `${invitation.id}:approve`}
+                disabled={busy !== null}
+                onClick={() => void decide(invitation.id, "approve")}
+              >
+                Approve
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 export function AdminPage() {
   const owner = useOwner();
   const [filter, setFilter] = useState<Filter>("open");
@@ -203,6 +276,8 @@ export function AdminPage() {
 
   return (
     <div className="grid gap-6">
+      <PendingInvitations />
+
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Reports</h1>

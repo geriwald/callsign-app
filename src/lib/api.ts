@@ -445,6 +445,15 @@ export type AdminReport = {
   reporter: { handle: string | null; ownerEmail: string };
 };
 
+export type AdminInvitation = {
+  id: string;
+  from: string;
+  fromName: string;
+  to: string;
+  createdAt: string;
+  expiresAt: string;
+};
+
 export type ConnectionStatus = "pending" | "active" | "needs_reauth" | "error";
 
 export type ConnectionSummary = {
