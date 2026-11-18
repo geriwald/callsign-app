@@ -11,7 +11,7 @@ import {
   type WakeKind,
   type WakeStatus,
 } from "@/lib/api";
-import { listenCommand, relayCommand } from "@/lib/cli-commands";
+import { listenCommand, relayCommand, tmuxCommand } from "@/lib/cli-commands";
 import { timeAgo } from "@/lib/format";
 import { site } from "@/lib/site";
 import { Badge, Button, Card, CodeLine, CopyButton, ErrorNote, Field, Input } from "../ui";
@@ -249,6 +249,12 @@ function ListenerToken({ agent }: { agent: OwnedAgent }) {
         <CodeLine value={relayCommand(value, site.apiUrl)} secret={Boolean(token)} />
         <p>Then put this in that folder&apos;s CLAUDE.md, with the name of the open session:</p>
         <Prompt value={RELAY_INSTRUCTIONS} />
+        <p>
+          On Linux, the listener can type check_inbox into a session running in tmux instead, without
+          starting a new Claude for each message. Start the session, then run the listener:
+        </p>
+        <CodeLine value="tmux new -s callsign claude" />
+        <CodeLine value={tmuxCommand(value, site.apiUrl)} secret={Boolean(token)} />
       </div>
     </div>
   );

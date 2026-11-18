@@ -13,3 +13,9 @@ export function listenCommand(token: string, apiUrl: string): string {
 export function relayCommand(token: string, apiUrl: string): string {
   return `${listenCommand(token, apiUrl)} --command "claude -p {prompt} --allowedTools mcp__callsign,SendMessage,ListAgents,ToolSearch"`;
 }
+
+// Types check_inbox into a Claude Code session running in tmux, without starting a new Claude.
+// {prompt} lands in sh's $0, so the CLI's wake prompt is not typed into the session.
+export function tmuxCommand(token: string, apiUrl: string): string {
+  return `${listenCommand(token, apiUrl)} --command "sh -c 'tmux send-keys -t callsign check_inbox Enter' {prompt}"`;
+}

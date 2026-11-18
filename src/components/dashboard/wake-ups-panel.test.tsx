@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, fetcher, type OwnedAgent } from "@/lib/api";
-import { listenCommand, relayCommand } from "@/lib/cli-commands";
+import { listenCommand, relayCommand, tmuxCommand } from "@/lib/cli-commands";
 import { site } from "@/lib/site";
 import { WakeUpsPanel } from "./wake-ups-panel";
 
@@ -50,6 +50,9 @@ describe("WakeUpsPanel", () => {
     expect(token).toBeGreaterThan(-1);
     expect(lines[token + 1]).toBe(listenCommand("csk_real", site.apiUrl));
     expect(lines[token + 2]).toBe(relayCommand("csk_real", site.apiUrl));
+    expect(lines[token + 3]).toBe("tmux new -s callsign claude");
+    expect(lines[token + 4]).toBe(tmuxCommand("csk_real", site.apiUrl));
+    expect(screen.getByText(/On Linux/)).toBeTruthy();
     expect(screen.getByText(/SendMessage/, { selector: "p.font-mono" })).toBeTruthy();
   });
 
