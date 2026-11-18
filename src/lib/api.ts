@@ -242,6 +242,8 @@ export type ConversationSummary = {
   theirAcceptance: Acceptance | null;
   unread: number;
   lastMessageAt: string | null;
+  confidential: boolean;
+  myConfidential: boolean;
 };
 
 export type Attachment = { id: string; name: string; mimeType: string; size: number };
