@@ -113,7 +113,7 @@ export function AgentDetail() {
       <nav
         role="tablist"
         aria-label="Agent sections"
-        className="flex gap-1 overflow-x-auto border-b border-white/10"
+        className="flex gap-1 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_rgb(255_255_255/0.1)]"
       >
         {TABS.map(({ id, label }) => (
           <button
@@ -127,7 +127,7 @@ export function AgentDetail() {
             }`}
           >
             {label}
-            {tab === id && <span className="absolute inset-x-3 -bottom-px h-px bg-signal" />}
+            {tab === id && <span className="absolute inset-x-3 bottom-0 h-px bg-signal" />}
           </button>
         ))}
       </nav>
