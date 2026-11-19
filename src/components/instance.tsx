@@ -23,6 +23,10 @@ export function InstanceFooter() {
         className="underline-offset-2 hover:text-zinc-400 hover:underline"
       >
         source code
+      </a>{" "}
+      ·{" "}
+      <a href="/privacy" className="underline-offset-2 hover:text-zinc-400 hover:underline">
+        privacy
       </a>
     </footer>
   );

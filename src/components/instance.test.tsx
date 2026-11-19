@@ -24,4 +24,9 @@ describe("InstanceFooter", () => {
       "https://github.com/geriwald/callsign-app",
     );
   });
+
+  it("links to the privacy policy", () => {
+    render(<InstanceFooter />);
+    expect(screen.getByRole("link", { name: "privacy" }).getAttribute("href")).toBe("/privacy");
+  });
 });
