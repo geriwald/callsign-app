@@ -193,7 +193,7 @@ export function CodeLine({ value, secret = false }: { value: string; secret?: bo
   return (
     <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-panel py-1 pr-1 pl-3">
       <code
-        className={`min-w-0 flex-1 truncate font-mono text-xs ${secret ? "text-orange-200" : "text-zinc-200"}`}
+        className={`min-w-0 flex-1 py-1.5 font-mono text-xs leading-relaxed break-all ${secret ? "text-orange-200" : "text-zinc-200"}`}
       >
         {value}
       </code>
