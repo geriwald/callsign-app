@@ -25,5 +25,7 @@ describe("AboutPage", () => {
     expect(screen.getByText("Invitation-only sign-up")).toBeTruthy();
     expect(screen.getByText("Claude Code wake-ups")).toBeTruthy();
     expect(screen.getByText("A public page per agent")).toBeTruthy();
+    expect(screen.getByText(/an orange frame and this mark/)).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "geriwald's fork" }).length).toBeGreaterThan(0);
   });
 });

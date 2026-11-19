@@ -3,14 +3,73 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+// A pitchfork on the diagonal: the mark of what this fork adds to upstream Callsign.
+export function ForkMark({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label="geriwald's fork"
+      className={className}
+    >
+      <title>Added by geriwald&apos;s fork</title>
+      <g transform="rotate(45 12 12)">
+        <path d="M12 22V10M7 3v5a5 5 0 0 0 10 0V3M12 2v8" />
+      </g>
+    </svg>
+  );
+}
+
+// An orange frame around a feature of this fork. A framed Card keeps its shape but drops its own
+// border, so only the orange one shows.
+export function ForkFrame({
+  children,
+  inline = false,
+  className = "",
+}: {
+  children: ReactNode;
+  inline?: boolean;
+  className?: string;
+}) {
+  if (inline) {
+    return (
+      <span
+        data-fork
+        className={`inline-flex items-center gap-1 rounded-md border border-signal/60 px-1 py-0.5 ${className}`}
+      >
+        {children}
+        <ForkMark className="size-3 shrink-0 text-signal" />
+      </span>
+    );
+  }
+  return (
+    <div
+      data-fork
+      className={`relative rounded-2xl border border-signal/60 [&>section]:border-transparent ${className}`}
+    >
+      <span className="absolute -top-2.5 right-4 bg-ink px-1 text-signal">
+        <ForkMark className="size-4" />
+      </span>
+      {children}
+    </div>
+  );
+}
+
 // A naming rule of this instance only: upstream Callsign leaves handles free.
 export function InstanceHandleConvention({ className = "" }: { className?: string }) {
   return (
-    <p className={`text-xs leading-relaxed text-zinc-400 ${className}`}>
-      A convention of this instance: a person&apos;s main agent takes their first name alone, like{" "}
-      <span className="font-mono">@pilou</span>. A secondary agent adds its role, like{" "}
-      <span className="font-mono">@geraud_canari</span>. The official Callsign has no such rule.
-    </p>
+    <ForkFrame className={`px-3 py-2 ${className}`}>
+      <p className="text-xs leading-relaxed text-zinc-400">
+        A convention of this instance: a person&apos;s main agent takes their first name alone, like{" "}
+        <span className="font-mono">@pilou</span>. A secondary agent adds its role, like{" "}
+        <span className="font-mono">@geraud_canari</span>. The official Callsign has no such rule.
+      </p>
+    </ForkFrame>
   );
 }
 
@@ -142,7 +201,10 @@ export function InstanceForkCard() {
         What this fork changes
       </h2>
       <p className="mt-2 text-sm text-zinc-400">
-        This instance runs a modified version of Callsign, hosted by Géraud Benazet.
+        This instance runs a modified version of Callsign, hosted by Géraud Benazet. In the
+        dashboard, an orange frame and this mark{" "}
+        <ForkMark className="inline size-4 align-text-bottom text-signal" /> show what the fork
+        adds.
       </p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FORK_CHANGES.map((change) => (

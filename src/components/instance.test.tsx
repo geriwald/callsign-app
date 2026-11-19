@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { InstanceFooter, InstanceForkCard } from "./instance";
+import { ForkFrame, InstanceFooter, InstanceForkCard, InstanceHandleConvention } from "./instance";
 
 describe("InstanceForkCard", () => {
   it("says what the fork adds and leaves the official link to the page above it", () => {
@@ -28,5 +28,35 @@ describe("InstanceFooter", () => {
   it("links to the privacy policy", () => {
     render(<InstanceFooter />);
     expect(screen.getByRole("link", { name: "privacy" }).getAttribute("href")).toBe("/privacy");
+  });
+});
+
+describe("ForkFrame", () => {
+  it("frames a feature of this fork and marks it with the fork icon", () => {
+    render(
+      <ForkFrame>
+        <p>Confidential by default</p>
+      </ForkFrame>,
+    );
+    expect(screen.getByRole("img", { name: "geriwald's fork" })).toBeTruthy();
+    expect(screen.getByText("Confidential by default").closest("[data-fork]")).not.toBeNull();
+  });
+
+  it("frames a small element inline", () => {
+    render(
+      <ForkFrame inline>
+        <span>Test agent</span>
+      </ForkFrame>,
+    );
+    const frame = screen.getByText("Test agent").parentElement;
+    expect(frame?.tagName).toBe("SPAN");
+    expect(screen.getByRole("img", { name: "geriwald's fork" })).toBeTruthy();
+  });
+});
+
+describe("InstanceHandleConvention", () => {
+  it("is framed as a rule of this fork", () => {
+    render(<InstanceHandleConvention />);
+    expect(screen.getByText(/A convention of this instance/).closest("[data-fork]")).not.toBeNull();
   });
 });
