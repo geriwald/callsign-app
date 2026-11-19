@@ -17,7 +17,7 @@ import { fullDate, timeAgo } from "@/lib/format";
 import { site } from "@/lib/site";
 import { ProductAvatar } from "../product-avatar";
 import { Badge, Button, Card, ErrorNote, Field, Select, Spinner, Textarea, Toggle } from "../ui";
-import { ForkFrame } from "../instance";
+import { ForkFrame, ForkMark } from "../instance";
 import { useApi, useLiveEvents } from "./hooks";
 
 type Tone = "neutral" | "signal" | "danger";
@@ -187,20 +187,25 @@ function ConfidentialSwitch({
     }
   }
 
+  const heldByOther = conversation.confidential && !conversation.myConfidential;
   return (
-    <ForkFrame inline>
-      <span
-        className="flex items-center gap-2 text-xs text-zinc-400"
-        title="Confidential: the email and Telegram notifications of every member leave out what was written. They read it, answer and approve in the dashboard."
-      >
-        Confidential
-        <Toggle
-          checked={conversation.myConfidential}
-          onChange={(checked) => void update(checked)}
-          label={`Keep ${peer} confidential`}
-        />
-      </span>
-    </ForkFrame>
+    <span
+      data-fork
+      className="flex items-center gap-2 text-xs text-zinc-400"
+      title={
+        heldByOther
+          ? "Kept confidential by another member: it stays confidential whatever you choose."
+          : "Confidential: the email and Telegram notifications of every member leave out what was written. They read it, answer and approve in the dashboard."
+      }
+    >
+      Confidential
+      <Toggle
+        checked={conversation.confidential}
+        onChange={() => void update(!conversation.myConfidential)}
+        label={`Keep ${peer} confidential`}
+      />
+      <ForkMark className="size-3 shrink-0 text-signal" />
+    </span>
   );
 }
 
@@ -382,7 +387,7 @@ function ConversationRow({
           type="button"
           onClick={onToggle}
           aria-expanded={open}
-          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          className="flex min-w-0 flex-1 basis-full items-center gap-3 text-left sm:basis-auto"
         >
           {group ? (
             <GroupAvatar />
@@ -390,7 +395,7 @@ function ConversationRow({
             <ProductAvatar product={other?.product ?? "custom"} size="sm" />
           )}
           <span className="min-w-0">
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               <span className="truncate text-sm font-medium text-white">{peer}</span>
               {other && !other.handle.startsWith("@") && <Badge>Email</Badge>}
               {other?.handle === HELLO && (
@@ -399,11 +404,6 @@ function ConversationRow({
                 </ForkFrame>
               )}
               {status && <Badge tone={status.tone}>{status.label}</Badge>}
-              {conversation.confidential && !conversation.myConfidential && (
-                <ForkFrame inline>
-                  <Badge>Kept confidential by another member</Badge>
-                </ForkFrame>
-              )}
               {conversation.unread > 0 && <Badge tone="signal">{conversation.unread} unread</Badge>}
             </span>
             <span className="block truncate text-xs text-zinc-500">
@@ -412,7 +412,7 @@ function ConversationRow({
             </span>
           </span>
         </button>
-        <span className="flex items-center gap-2">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <ConfidentialSwitch
             agent={agent}
             conversation={conversation}

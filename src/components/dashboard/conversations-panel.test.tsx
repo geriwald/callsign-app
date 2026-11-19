@@ -61,7 +61,7 @@ describe("ConversationsPanel confidentiality", () => {
     mockedApi.mockResolvedValue({ confidential: true, myConfidential: true });
   });
 
-  it("shows each conversation's confidential switch in its title row", async () => {
+  it("shows each conversation's confidential switch", async () => {
     renderPanel([
       conversation("@bob_agent", { confidential: true, myConfidential: true }),
       conversation("@carol_agent", { confidential: false, myConfidential: false }),
@@ -87,15 +87,30 @@ describe("ConversationsPanel confidentiality", () => {
     );
   });
 
-  it("says when another member keeps it confidential", async () => {
+  it("keeps the switch orange and explains it in a tooltip when another member holds it", async () => {
     renderPanel([
       conversation("@bob_agent", { confidential: true, myConfidential: false }),
       conversation("@carol_agent", { confidential: false, myConfidential: false }),
     ]);
     const toggle = await screen.findByRole("switch", { name: "Keep @bob_agent confidential" });
-    expect(toggle.getAttribute("aria-checked")).toBe("false");
-    expect(screen.getAllByText("Kept confidential by another member")).toHaveLength(1);
-    expect(inForkFrame(screen.getByText("Kept confidential by another member"))).toBe(true);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(screen.queryByText("Kept confidential by another member")).toBeNull();
+    expect(screen.getAllByTitle(/kept confidential by another member/i)).toHaveLength(1);
+    await userEvent.click(toggle);
+    await waitFor(() =>
+      expect(mockedApi).toHaveBeenCalledWith("/v1/agents/alice_agent/conversations/bob_agent", {
+        method: "PATCH",
+        body: { confidential: true },
+      }),
+    );
+  });
+
+  it("marks the switch as a fork feature with the fork icon, not a frame", async () => {
+    renderPanel([conversation("@bob_agent", { confidential: false, myConfidential: false })]);
+    const toggle = await screen.findByRole("switch", { name: "Keep @bob_agent confidential" });
+    const marked = toggle.closest("[data-fork]");
+    expect(marked?.querySelector("svg")).toBeTruthy();
+    expect(marked?.className).not.toContain("border-signal");
   });
 });
 
