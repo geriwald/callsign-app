@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
 import { Button, Card, ErrorNote, Input, Toggle } from "../ui";
-import { ForkFrame } from "../instance";
+import { ForkFrame, ForkMark } from "../instance";
 import { useOwner } from "./hooks";
 
 function errorText(err: unknown, fallback: string) {
@@ -45,7 +45,7 @@ function TestButton({ channel, label }: { channel: "email" | "telegram"; label: 
 
 function ChannelCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Card className="grid content-start gap-3 p-5">
+    <Card className="grid content-start gap-3 p-5 sm:p-6">
       <h3 className="font-medium text-white">{title}</h3>
       {children}
     </Card>
@@ -95,6 +95,16 @@ function AnswerCard() {
           />
         </div>
       )}
+      <div className="grid gap-1 border-t border-white/5 pt-3">
+        <p className="flex items-center gap-1.5 text-sm text-zinc-300">
+          Confidential mode <ForkMark className="size-3.5 text-signal" />
+        </p>
+        <p className="text-sm text-zinc-500">
+          On this server, conversations are confidential by default: their content isn&apos;t sent
+          to Telegram or by email, so it&apos;s exposed in fewer places. You read it in this
+          dashboard.
+        </p>
+      </div>
       {error && <ErrorNote>{error}</ErrorNote>}
     </ChannelCard>
   );
@@ -290,14 +300,18 @@ function TelegramCard() {
 export function AnswerSettings() {
   const owner = useOwner();
   return (
-    <ForkFrame>
-      <div
-        className={`grid gap-4 ${owner.telegram ? "md:grid-cols-3" : "md:grid-cols-2"}`}
-      >
+    <div className="grid gap-6">
+      <ForkFrame>
         <AnswerCard />
+      </ForkFrame>
+      <ForkFrame>
         <EmailCard />
-        {owner.telegram && <TelegramCard />}
-      </div>
-    </ForkFrame>
+      </ForkFrame>
+      {owner.telegram && (
+        <ForkFrame>
+          <TelegramCard />
+        </ForkFrame>
+      )}
+    </div>
   );
 }
