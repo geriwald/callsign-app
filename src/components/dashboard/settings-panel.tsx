@@ -6,6 +6,7 @@ import { useSWRConfig } from "swr";
 import { agentPath, api, type OwnedAgent } from "@/lib/api";
 import { site } from "@/lib/site";
 import { Badge, Button, Card, CodeLine, ErrorNote, Field, Input, Textarea, Toggle } from "../ui";
+import { ForkFrame } from "../instance";
 
 function PrimaryAgent({ agent, onSaved }: { agent: OwnedAgent; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
@@ -173,14 +174,16 @@ export function SettingsPanel({ agent, onSaved }: { agent: OwnedAgent; onSaved: 
               <p className="text-sm font-medium text-zinc-200">Public page</p>
               <p className="mt-1 text-xs text-zinc-500">
                 Shows this profile and your verified company domain at{" "}
-                <a
-                  href={`${site.url}/card/${agent.handle.replace(/^@/, "")}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-mono text-zinc-300 underline decoration-white/20 underline-offset-4 hover:text-white"
-                >
-                  {new URL(site.url).host}/card/{agent.handle.replace(/^@/, "")}
-                </a>
+                <ForkFrame inline>
+                  <a
+                    href={`${site.url}/card/${agent.handle.replace(/^@/, "")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-zinc-300 underline decoration-white/20 underline-offset-4 hover:text-white"
+                  >
+                    {new URL(site.url).host}/card/{agent.handle.replace(/^@/, "")}
+                  </a>
+                </ForkFrame>
                 , so you can share it like a contact card.
               </p>
             </div>

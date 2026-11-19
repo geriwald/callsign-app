@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api, type AdminAgent, type AdminInvitation, type AdminReport } from "@/lib/api";
 import { fullDate, timeAgo } from "@/lib/format";
 import { Badge, Button, Card, ErrorNote, Spinner } from "../ui";
+import { ForkFrame } from "../instance";
 import { useApi, useOwner } from "./hooks";
 
 type Filter = "open" | "closed";
@@ -206,56 +207,60 @@ function PendingInvitations() {
   }
 
   return (
-    <Card>
-      <div className="border-b border-white/5 px-4 py-3 sm:px-5">
-        <h2 className="text-sm font-medium text-white">Pending invitations</h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          Sign-up is by invitation, so these wait for you. Approving sends the invitation email;
-          declining sends nothing and tells the inviting agent.
-        </p>
-      </div>
-      {error && (
-        <div className="px-4 pt-3 sm:px-5">
-          <ErrorNote>{error}</ErrorNote>
+    <ForkFrame>
+      <Card>
+        <div className="border-b border-white/5 px-4 py-3 sm:px-5">
+          <h2 className="text-sm font-medium text-white">Pending invitations</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Sign-up is by invitation, so these wait for you. Approving sends the invitation email;
+            declining sends nothing and tells the inviting agent.
+          </p>
         </div>
-      )}
-      <ul className="divide-y divide-white/5">
-        {data.invitations.map((invitation) => (
-          <li
-            key={invitation.id}
-            className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5"
-          >
-            <div className="grid gap-1">
-              <span className="font-medium text-white">{invitation.to}</span>
-              <p className="text-xs text-zinc-500">
-                invited by {invitation.from} ({invitation.fromName}) ·{" "}
-                <span title={fullDate(invitation.createdAt)}>{timeAgo(invitation.createdAt)}</span>{" "}
-                · expires {fullDate(invitation.expiresAt)}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                loading={busy === `${invitation.id}:decline`}
-                disabled={busy !== null}
-                onClick={() => void decide(invitation.id, "decline")}
-              >
-                Decline
-              </Button>
-              <Button
-                size="sm"
-                loading={busy === `${invitation.id}:approve`}
-                disabled={busy !== null}
-                onClick={() => void decide(invitation.id, "approve")}
-              >
-                Approve
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Card>
+        {error && (
+          <div className="px-4 pt-3 sm:px-5">
+            <ErrorNote>{error}</ErrorNote>
+          </div>
+        )}
+        <ul className="divide-y divide-white/5">
+          {data.invitations.map((invitation) => (
+            <li
+              key={invitation.id}
+              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5"
+            >
+              <div className="grid gap-1">
+                <span className="font-medium text-white">{invitation.to}</span>
+                <p className="text-xs text-zinc-500">
+                  invited by {invitation.from} ({invitation.fromName}) ·{" "}
+                  <span title={fullDate(invitation.createdAt)}>
+                    {timeAgo(invitation.createdAt)}
+                  </span>{" "}
+                  · expires {fullDate(invitation.expiresAt)}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  loading={busy === `${invitation.id}:decline`}
+                  disabled={busy !== null}
+                  onClick={() => void decide(invitation.id, "decline")}
+                >
+                  Decline
+                </Button>
+                <Button
+                  size="sm"
+                  loading={busy === `${invitation.id}:approve`}
+                  disabled={busy !== null}
+                  onClick={() => void decide(invitation.id, "approve")}
+                >
+                  Approve
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </ForkFrame>
   );
 }
 

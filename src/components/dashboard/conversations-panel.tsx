@@ -17,6 +17,7 @@ import { fullDate, timeAgo } from "@/lib/format";
 import { site } from "@/lib/site";
 import { ProductAvatar } from "../product-avatar";
 import { Badge, Button, Card, ErrorNote, Field, Select, Spinner, Textarea, Toggle } from "../ui";
+import { ForkFrame } from "../instance";
 import { useApi, useLiveEvents } from "./hooks";
 
 type Tone = "neutral" | "signal" | "danger";
@@ -187,17 +188,19 @@ function ConfidentialSwitch({
   }
 
   return (
-    <span
-      className="flex items-center gap-2 text-xs text-zinc-400"
-      title="Confidential: the email and Telegram notifications of every member leave out what was written. They read it, answer and approve in the dashboard."
-    >
-      Confidential
-      <Toggle
-        checked={conversation.myConfidential}
-        onChange={(checked) => void update(checked)}
-        label={`Keep ${peer} confidential`}
-      />
-    </span>
+    <ForkFrame inline>
+      <span
+        className="flex items-center gap-2 text-xs text-zinc-400"
+        title="Confidential: the email and Telegram notifications of every member leave out what was written. They read it, answer and approve in the dashboard."
+      >
+        Confidential
+        <Toggle
+          checked={conversation.myConfidential}
+          onChange={(checked) => void update(checked)}
+          label={`Keep ${peer} confidential`}
+        />
+      </span>
+    </ForkFrame>
   );
 }
 
@@ -390,10 +393,16 @@ function ConversationRow({
             <span className="flex items-center gap-2">
               <span className="truncate text-sm font-medium text-white">{peer}</span>
               {other && !other.handle.startsWith("@") && <Badge>Email</Badge>}
-              {other?.handle === HELLO && <Badge>Test agent</Badge>}
+              {other?.handle === HELLO && (
+                <ForkFrame inline>
+                  <Badge>Test agent</Badge>
+                </ForkFrame>
+              )}
               {status && <Badge tone={status.tone}>{status.label}</Badge>}
               {conversation.confidential && !conversation.myConfidential && (
-                <Badge>Kept confidential by another member</Badge>
+                <ForkFrame inline>
+                  <Badge>Kept confidential by another member</Badge>
+                </ForkFrame>
               )}
               {conversation.unread > 0 && <Badge tone="signal">{conversation.unread} unread</Badge>}
             </span>

@@ -32,6 +32,8 @@ function renderPanel() {
 
 const codeLines = () => screen.getAllByRole("code").map((el) => el.textContent);
 
+const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
+
 describe("WakeUpsPanel", () => {
   beforeEach(() => {
     mockedApi.mockReset();
@@ -53,12 +55,15 @@ describe("WakeUpsPanel", () => {
     expect(lines[token + 3]).toBe("tmux new -s callsign claude");
     expect(lines[token + 4]).toBe(tmuxCommand("csk_real", site.apiUrl));
     expect(screen.getByText(/On Linux/)).toBeTruthy();
+    expect(inForkFrame(screen.getByText(/On Linux/))).toBe(true);
+    expect(inForkFrame(screen.getByText(/To watch the work/))).toBe(true);
     expect(screen.getByText(/SendMessage/, { selector: "p.font-mono" })).toBeTruthy();
   });
 
   it("tests a running listener with a message from @hello", async () => {
     mockedApi.mockResolvedValue({ sent: true });
     renderPanel();
+    expect(inForkFrame(screen.getByRole("button", { name: "Send a test message" }))).toBe(true);
     await userEvent.click(screen.getByRole("button", { name: "Send a test message" }));
     expect(mockedApi).toHaveBeenCalledWith("/v1/agents/alice/wake/listener-test", {
       method: "POST",
@@ -75,10 +80,10 @@ describe("WakeUpsPanel", () => {
 
   it("draws each tested mode with its limit", async () => {
     renderPanel();
-    expect(screen.getByRole("img", { name: /listener/i })).toBeTruthy();
+    expect(inForkFrame(screen.getByRole("img", { name: /listener/i }))).toBe(true);
     expect(screen.getByText(/only reaches sessions open on the same machine/)).toBeTruthy();
     await userEvent.click(screen.getByRole("tab", { name: "Claude in the cloud" }));
-    expect(screen.getByRole("img", { name: /routine/i })).toBeTruthy();
+    expect(inForkFrame(screen.getByRole("img", { name: /routine/i }))).toBe(true);
     expect(screen.getByText(/cannot message your computer/)).toBeTruthy();
   });
 });

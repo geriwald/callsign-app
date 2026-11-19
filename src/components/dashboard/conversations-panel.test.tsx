@@ -52,6 +52,8 @@ function renderPanel(conversations: ConversationSummary[]) {
   );
 }
 
+const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
+
 describe("ConversationsPanel confidentiality", () => {
   beforeEach(() => {
     mockedApi.mockReset();
@@ -68,6 +70,8 @@ describe("ConversationsPanel confidentiality", () => {
     const carol = screen.getByRole("switch", { name: "Keep @carol_agent confidential" });
     expect(bob.getAttribute("aria-checked")).toBe("true");
     expect(carol.getAttribute("aria-checked")).toBe("false");
+    expect(inForkFrame(bob)).toBe(true);
+    expect(inForkFrame(carol)).toBe(true);
   });
 
   it("turns the owner's flag on without opening the conversation", async () => {
@@ -91,6 +95,7 @@ describe("ConversationsPanel confidentiality", () => {
     const toggle = await screen.findByRole("switch", { name: "Keep @bob_agent confidential" });
     expect(toggle.getAttribute("aria-checked")).toBe("false");
     expect(screen.getAllByText("Kept confidential by another member")).toHaveLength(1);
+    expect(inForkFrame(screen.getByText("Kept confidential by another member"))).toBe(true);
   });
 });
 
@@ -106,6 +111,7 @@ describe("ConversationsPanel @hello", () => {
     ]);
     await screen.findByText("@bob_agent");
     expect(screen.getAllByText("Test agent")).toHaveLength(1);
+    expect(inForkFrame(screen.getByText("Test agent"))).toBe(true);
     const link = screen.getByRole("link", { name: "About @hello" });
     expect(link.getAttribute("href")).toBe("/card/hello");
   });

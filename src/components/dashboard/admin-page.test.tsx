@@ -44,6 +44,8 @@ function renderAdminPage() {
   );
 }
 
+const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
+
 describe("AdminPage pending invitations", () => {
   beforeEach(() => {
     mockedApi.mockReset();
@@ -60,6 +62,7 @@ describe("AdminPage pending invitations", () => {
     renderAdminPage();
     expect(await screen.findByText("g***@example.com")).toBeTruthy();
     expect(screen.getByText(/@member_agent/)).toBeTruthy();
+    expect(inForkFrame(screen.getByText("Pending invitations"))).toBe(true);
   });
 
   it.each([
