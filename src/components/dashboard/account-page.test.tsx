@@ -6,7 +6,10 @@ import { api, fetcher, type Owner } from "@/lib/api";
 import { AccountPage } from "./account-page";
 import { OwnerContext } from "./hooks";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 vi.mock("@/lib/api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api")>()),
@@ -25,7 +28,7 @@ const owner: Owner = {
   organizationDomain: null,
   admin: false,
   telegram: null,
-  answer: { email: true, telegram: false, address: "owner@example.com", customAddress: false },
+  answer: { email: true, telegram: false, push: false, address: "owner@example.com", customAddress: false },
 };
 
 const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
@@ -34,7 +37,13 @@ describe("AccountPage confidentiality default", () => {
   beforeEach(() => {
     mockedApi.mockReset();
     mockedFetcher.mockReset();
-    mockedFetcher.mockResolvedValue({ passkeys: [], reset: null, elevatedUntil: null });
+    mockedFetcher.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/v1/me/push"
+          ? { publicKey: null, devices: [] }
+          : { passkeys: [], reset: null, elevatedUntil: null },
+      ),
+    );
     mockedApi.mockResolvedValue({ owner: { ...owner, confidentialDefault: false } });
   });
 

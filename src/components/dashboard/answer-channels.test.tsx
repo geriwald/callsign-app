@@ -2,16 +2,40 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { api, type Owner } from "@/lib/api";
+import { api, fetcher, type Owner, type PushDevice } from "@/lib/api";
+import { subscribeDevice } from "@/lib/web-push";
 import { AnswerSettings } from "./answer-channels";
 import { OwnerContext } from "./hooks";
+
+let search = new URLSearchParams();
+const replace = vi.fn();
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => search,
+  useRouter: () => ({ replace }),
+}));
 
 vi.mock("@/lib/api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api")>()),
   api: vi.fn(),
+  fetcher: vi.fn(),
+}));
+
+vi.mock("@/lib/web-push", () => ({
+  pushSupported: () => true,
+  isStandalone: () => true,
+  platform: () => "ios",
+  deviceLabel: () => "iPhone",
+  subscribeDevice: vi.fn(() =>
+    Promise.resolve({
+      endpoint: "https://push.example.com/1",
+      keys: { p256dh: "k", auth: "a" },
+    }),
+  ),
 }));
 
 const mockedApi = vi.mocked(api);
+const mockedFetcher = vi.mocked(fetcher);
+let devices: PushDevice[] = [];
 
 const base: Owner = {
   id: "o1",
@@ -21,7 +45,7 @@ const base: Owner = {
   organizationDomain: null,
   admin: false,
   telegram: { linked: false },
-  answer: { email: true, telegram: false, address: "owner@example.com", customAddress: false },
+  answer: { email: true, telegram: false, push: false, address: "owner@example.com", customAddress: false },
 };
 
 function renderWith(owner: Owner) {
@@ -38,6 +62,11 @@ describe("AnswerSettings", () => {
   beforeEach(() => {
     mockedApi.mockReset();
     mockedApi.mockResolvedValue({});
+    devices = [];
+    search = new URLSearchParams();
+    replace.mockReset();
+    mockedFetcher.mockReset();
+    mockedFetcher.mockImplementation(() => Promise.resolve({ publicKey: "pk", devices }));
   });
 
   it("keeps the last channel on and Telegram off until it's linked", () => {
@@ -97,5 +126,66 @@ describe("AnswerSettings", () => {
       body: { channel: "telegram" },
     });
     expect(await screen.findAllByText("Sent. Check that it arrived.")).toHaveLength(2);
+  });
+
+  it("keeps the web app off until a device passed the question test", async () => {
+    devices = [{ id: "d1", label: "iPhone", createdAt: "", tested: false }];
+    renderWith(base);
+    const toggle = await screen.findByRole("switch", { name: "Answer in the web app" });
+    expect(toggle.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("lets a tested device turn the web app on", async () => {
+    devices = [{ id: "d1", label: "iPhone", createdAt: "", tested: true }];
+    renderWith(base);
+    const toggle = await screen.findByRole("switch", { name: "Answer in the web app" });
+    await waitFor(() => expect(toggle.hasAttribute("disabled")).toBe(false));
+    await userEvent.click(toggle);
+    expect(mockedApi).toHaveBeenCalledWith("/v1/me", {
+      method: "PATCH",
+      body: { answerPush: true },
+    });
+  });
+
+  it("subscribes this device and tests it", async () => {
+    renderWith(base);
+    await userEvent.click(await screen.findByRole("button", { name: "Turn on notifications" }));
+    await waitFor(() => expect(vi.mocked(subscribeDevice)).toHaveBeenCalledWith("pk"));
+    expect(mockedApi).toHaveBeenCalledWith("/v1/me/push", {
+      method: "POST",
+      body: {
+        endpoint: "https://push.example.com/1",
+        keys: { p256dh: "k", auth: "a" },
+        label: "iPhone",
+      },
+    });
+  });
+
+  it("sends both tests to a device", async () => {
+    devices = [{ id: "d1", label: "iPhone", createdAt: "", tested: false }];
+    renderWith(base);
+    await userEvent.click(await screen.findByRole("button", { name: "Test notification" }));
+    await userEvent.click(screen.getByRole("button", { name: "Test question" }));
+    expect(mockedApi).toHaveBeenCalledWith("/v1/me/push/d1/test", {
+      method: "POST",
+      body: { kind: "notification" },
+    });
+    expect(mockedApi).toHaveBeenCalledWith("/v1/me/push/d1/test", {
+      method: "POST",
+      body: { kind: "question" },
+    });
+  });
+
+  it("confirms a tapped test question when the app opens on this page", async () => {
+    search = new URLSearchParams({ "push-test": "tok123" });
+    renderWith(base);
+    await waitFor(() =>
+      expect(mockedApi).toHaveBeenCalledWith("/v1/me/push/confirm", {
+        method: "POST",
+        body: { token: "tok123" },
+      }),
+    );
+    expect(await screen.findByText(/Test passed/)).toBeTruthy();
+    expect(replace).toHaveBeenCalledWith("/dashboard/account");
   });
 });

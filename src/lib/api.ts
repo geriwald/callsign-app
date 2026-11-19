@@ -14,8 +14,16 @@ export type Owner = {
   organizationDomain: string | null;
   admin: boolean;
   telegram: { linked: boolean } | null;
-  answer: { email: boolean; telegram: boolean; address: string; customAddress: boolean };
+  answer: {
+    email: boolean;
+    telegram: boolean;
+    push: boolean;
+    address: string;
+    customAddress: boolean;
+  };
 };
+
+export type PushDevice = { id: string; label: string; createdAt: string; tested: boolean };
 
 export type AgentProfile = {
   handle: string;

@@ -25,7 +25,7 @@ const owner: Owner = {
   organizationDomain: null,
   admin: false,
   telegram: null,
-  answer: { email: true, telegram: false, address: "owner@example.com", customAddress: false },
+  answer: { email: true, telegram: false, push: false, address: "owner@example.com", customAddress: false },
 };
 
 function renderHeader() {

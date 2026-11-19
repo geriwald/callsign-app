@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useSWRConfig } from "swr";
-import { api } from "@/lib/api";
+import { api, type PushDevice } from "@/lib/api";
+import {
+  deviceLabel,
+  isStandalone,
+  platform,
+  pushSupported,
+  subscribeDevice,
+} from "@/lib/web-push";
 import { Button, Card, ErrorNote, Input, Toggle } from "../ui";
 import { ForkFrame, ForkMark } from "../instance";
-import { useOwner } from "./hooks";
+import { useApi, useOwner } from "./hooks";
 
 function errorText(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
@@ -52,14 +60,23 @@ function ChannelCard({ title, children }: { title: string; children: ReactNode }
   );
 }
 
+type PushState = { publicKey: string | null; devices: PushDevice[] };
+
 function AnswerCard() {
   const owner = useOwner();
   const { mutate } = useSWRConfig();
   const [error, setError] = useState<string | null>(null);
-  const { email, telegram } = owner.answer;
+  const { email, telegram, push } = owner.answer;
   const linked = owner.telegram?.linked ?? false;
+  const { data: devices } = useApi<PushState>("/v1/me/push");
+  const tested = devices?.devices.some((device) => device.tested) ?? false;
+  const on = [email, telegram, push].filter(Boolean).length;
 
-  async function update(body: { answerEmail?: boolean; answerTelegram?: boolean }) {
+  async function update(body: {
+    answerEmail?: boolean;
+    answerTelegram?: boolean;
+    answerPush?: boolean;
+  }) {
     setError(null);
     try {
       await api("/v1/me", { method: "PATCH", body });
@@ -79,7 +96,7 @@ function AnswerCard() {
         <span className="text-sm text-zinc-300">Email</span>
         <Toggle
           checked={email}
-          disabled={email && !telegram}
+          disabled={email && on === 1}
           onChange={(checked) => void update({ answerEmail: checked })}
           label="Answer by email"
         />
@@ -89,9 +106,27 @@ function AnswerCard() {
           <span className="text-sm text-zinc-300">Telegram</span>
           <Toggle
             checked={telegram}
-            disabled={!linked || (telegram && !email)}
+            disabled={!linked || (telegram && on === 1)}
             onChange={(checked) => void update({ answerTelegram: checked })}
             label="Answer on Telegram"
+          />
+        </div>
+      )}
+      {devices?.publicKey && (
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm text-zinc-300">
+            Web app
+            {!tested && !push && (
+              <span className="block text-xs text-zinc-500">
+                Pass a test question on a device first.
+              </span>
+            )}
+          </span>
+          <Toggle
+            checked={push}
+            disabled={(!push && !tested) || (push && on === 1)}
+            onChange={(checked) => void update({ answerPush: checked })}
+            label="Answer in the web app"
           />
         </div>
       )}
@@ -297,10 +332,219 @@ function TelegramCard() {
   );
 }
 
+function DeviceRow({ device, onChanged }: { device: PushDevice; onChanged: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function run(key: string, action: () => Promise<void>, done: string) {
+    setBusy(key);
+    setNote(null);
+    setError(null);
+    try {
+      await action();
+      setNote(done);
+    } catch (err) {
+      setError(errorText(err, "That didn't work."));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const test = (kind: "notification" | "question") =>
+    run(
+      kind,
+      () => api(`/v1/me/push/${device.id}/test`, { method: "POST", body: { kind } }),
+      kind === "question"
+        ? "Sent. Tap the notification: it should open this page and confirm the test."
+        : "Sent. Check that it arrived.",
+    );
+
+  return (
+    <li className="grid gap-2 border-t border-white/5 pt-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm text-zinc-300">
+          {device.label}{" "}
+          <span className={device.tested ? "text-emerald-400" : "text-zinc-500"}>
+            · {device.tested ? "tested" : "not tested yet"}
+          </span>
+        </span>
+        <Button
+          size="sm"
+          variant="ghost"
+          loading={busy === "remove"}
+          onClick={() =>
+            void run(
+              "remove",
+              async () => {
+                await api(`/v1/me/push/${device.id}`, { method: "DELETE" });
+                onChanged();
+              },
+              "Removed.",
+            )
+          }
+        >
+          Remove
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          loading={busy === "notification"}
+          onClick={() => void test("notification")}
+        >
+          Test notification
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          loading={busy === "question"}
+          onClick={() => void test("question")}
+        >
+          Test question
+        </Button>
+      </div>
+      {note && <p className="text-xs text-zinc-400">{note}</p>}
+      {error && <ErrorNote>{error}</ErrorNote>}
+    </li>
+  );
+}
+
+function InstallSteps() {
+  const kind = platform();
+  if (kind === "ios") {
+    return (
+      <p className="text-sm text-zinc-500">
+        On this iPhone, open this page in Safari, tap Share, then Add to Home Screen (iOS 16.4 or
+        later). Open Callsign from the home screen, sign in with the code from your sign-in email,
+        and come back here.
+      </p>
+    );
+  }
+  if (kind === "android") {
+    return (
+      <p className="text-sm text-zinc-500">
+        In Chrome, open the menu and choose Install app, then open Callsign from your home screen.
+        Notifications also work without installing it.
+      </p>
+    );
+  }
+  return (
+    <p className="text-sm text-zinc-500">
+      Open this page on your phone to install Callsign on its home screen. This browser can also
+      get notifications while it&apos;s open.
+    </p>
+  );
+}
+
+function WebAppCard() {
+  const { data, mutate } = useApi<PushState>("/v1/me/push");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // The account page only renders in the browser, once the owner is loaded.
+  const [supported] = useState(pushSupported);
+  const [installed] = useState(isStandalone);
+
+  if (!data?.publicKey) return null;
+  const publicKey = data.publicKey;
+
+  async function enable() {
+    setBusy(true);
+    setError(null);
+    try {
+      const subscription = await subscribeDevice(publicKey);
+      await api("/v1/me/push", {
+        method: "POST",
+        body: { ...subscription, label: deviceLabel() },
+      });
+      await mutate();
+    } catch (err) {
+      setError(errorText(err, "Couldn't turn on notifications."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ChannelCard title="Web app">
+      {!installed && <InstallSteps />}
+      {supported ? (
+        <div>
+          <Button size="sm" loading={busy} onClick={() => void enable()}>
+            Turn on notifications
+          </Button>
+        </div>
+      ) : (
+        <p className="text-xs text-zinc-500">
+          This browser can&apos;t receive notifications.
+          {platform() === "ios" && " On an iPhone, add Callsign to the home screen first."}
+        </p>
+      )}
+      {error && <ErrorNote>{error}</ErrorNote>}
+      {data.devices.length > 0 && (
+        <ul className="grid gap-3">
+          {data.devices.map((device) => (
+            <DeviceRow key={device.id} device={device} onChanged={() => void mutate()} />
+          ))}
+        </ul>
+      )}
+    </ChannelCard>
+  );
+}
+
+// A tapped "Test question" notification opens this page with its token: that proves the device.
+function PushTestConfirm() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
+  const token = params.get("push-test");
+  const started = useRef(false);
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!token || started.current) return;
+    started.current = true;
+    api("/v1/me/push/confirm", { method: "POST", body: { token } }).then(
+      () => {
+        setResult({
+          ok: true,
+          text: "Test passed: questions can reach this device. You can now turn on the web app.",
+        });
+        void mutate("/v1/me/push");
+      },
+      (err: unknown) => setResult({ ok: false, text: errorText(err, "The test failed.") }),
+    );
+    router.replace("/dashboard/account");
+  }, [token, router, mutate]);
+
+  if (!result) return null;
+  return result.ok ? (
+    <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] p-3 text-sm text-emerald-300">
+      {result.text}
+    </p>
+  ) : (
+    <ErrorNote>{result.text}</ErrorNote>
+  );
+}
+
+function WebAppFrame() {
+  const { data } = useApi<PushState>("/v1/me/push");
+  if (!data?.publicKey) return null;
+  return (
+    <ForkFrame>
+      <WebAppCard />
+    </ForkFrame>
+  );
+}
+
 export function AnswerSettings() {
   const owner = useOwner();
   return (
     <div className="grid gap-6">
+      <Suspense>
+        <PushTestConfirm />
+      </Suspense>
       <ForkFrame>
         <AnswerCard />
       </ForkFrame>
@@ -312,6 +556,7 @@ export function AnswerSettings() {
           <TelegramCard />
         </ForkFrame>
       )}
+      <WebAppFrame />
     </div>
   );
 }
