@@ -52,6 +52,31 @@ export function LoginForm() {
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+
+  // The iPhone home screen app can't use the link, which opens in Safari: it signs in by code.
+  async function signInWithCode(event: FormEvent) {
+    event.preventDefault();
+    if (!sentTo) return;
+    setChecking(true);
+    setCodeError(null);
+    try {
+      await api("/v1/auth/verify-code", { method: "POST", body: { email: sentTo, code } });
+      router.replace(
+        next && isLocalPath(next)
+          ? next
+          : claim
+            ? `/dashboard?claim=${encodeURIComponent(claim)}`
+            : "/dashboard",
+      );
+    } catch (err) {
+      setCodeError(err instanceof Error ? err.message : "That code didn't work.");
+    } finally {
+      setChecking(false);
+    }
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -90,6 +115,28 @@ export function LoginForm() {
             </>
           )}
         </div>
+        <ForkNote className="mt-6">
+          <form onSubmit={signInWithCode} className="grid gap-2">
+            <p className="text-sm text-zinc-400">
+              In the Callsign app on your home screen, enter the six-digit code from the email
+              instead.
+            </p>
+            <Input
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              aria-label="Code"
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              required
+            />
+            <div>
+              <Button type="submit" size="sm" variant="secondary" loading={checking}>
+                Sign in with the code
+              </Button>
+            </div>
+            {codeError && <ErrorNote>{codeError}</ErrorNote>}
+          </form>
+        </ForkNote>
         {site.mailpitUrl && (
           <p className="mt-6 text-xs text-zinc-500">
             Running locally? Open{" "}

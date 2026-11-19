@@ -113,3 +113,31 @@ describe("LoginForm on an invite-only server", () => {
     expect(screen.queryByText(/We sent a sign-in link/)).toBeNull();
   });
 });
+
+describe("LoginForm sign-in code", () => {
+  beforeEach(() => {
+    replace.mockReset();
+    mockedApi.mockReset();
+    search = new URLSearchParams();
+  });
+
+  it("signs in with the six-digit code from the email", async () => {
+    mockedApi.mockImplementation(async (path: string) => {
+      if (path === "/v1/me") throw new ApiError(401, "unauthorized", "Sign in");
+      if (path === "/v1/signup") return { mode: "open" };
+      if (path === "/v1/auth/login") return { status: "sent" };
+      if (path === "/v1/auth/verify-code") return { created: false };
+      throw new Error(`unexpected call to ${path}`);
+    });
+    render(<LoginForm />);
+    await userEvent.type(await screen.findByLabelText("Email"), "me@example.com");
+    await userEvent.click(screen.getByRole("button", { name: "Send sign-in link" }));
+    await userEvent.type(await screen.findByLabelText("Code"), "123456");
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with the code" }));
+    expect(mockedApi).toHaveBeenCalledWith("/v1/auth/verify-code", {
+      method: "POST",
+      body: { email: "me@example.com", code: "123456" },
+    });
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/dashboard"));
+  });
+});
