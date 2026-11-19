@@ -27,6 +27,8 @@ const owner: Owner = {
   telegram: null,
 };
 
+const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
+
 describe("AccountPage confidentiality default", () => {
   beforeEach(() => {
     mockedApi.mockReset();
@@ -45,6 +47,7 @@ describe("AccountPage confidentiality default", () => {
     );
     const toggle = screen.getByRole("switch", { name: "Make new conversations confidential" });
     expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(inForkFrame(screen.getByText("Confidential by default"))).toBe(true);
     await userEvent.click(toggle);
     await waitFor(() =>
       expect(mockedApi).toHaveBeenCalledWith("/v1/me", {
