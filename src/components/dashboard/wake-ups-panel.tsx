@@ -256,6 +256,43 @@ function ListenerToken({ agent }: { agent: OwnedAgent }) {
         <CodeLine value="tmux new -s callsign claude" />
         <CodeLine value={tmuxCommand(value, site.apiUrl)} secret={Boolean(token)} />
       </div>
+      <ListenerTest agent={agent} />
+    </div>
+  );
+}
+
+function ListenerTest({ agent }: { agent: OwnedAgent }) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function send() {
+    setSending(true);
+    setError(null);
+    try {
+      await api(agentPath(agent.handle, "/wake/listener-test"), { method: "POST" });
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't send the test.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="mt-3 grid gap-2">
+      <p>Once the listener runs, check that a message wakes it:</p>
+      <div>
+        <Button size="sm" variant="secondary" loading={sending} onClick={() => void send()}>
+          Send a test message
+        </Button>
+      </div>
+      {sent && (
+        <p className="text-xs text-zinc-400">
+          @hello sent a test message to {agent.handle}. A running listener reacts within seconds.
+        </p>
+      )}
+      {error && <ErrorNote>{error}</ErrorNote>}
     </div>
   );
 }

@@ -56,6 +56,16 @@ describe("WakeUpsPanel", () => {
     expect(screen.getByText(/SendMessage/, { selector: "p.font-mono" })).toBeTruthy();
   });
 
+  it("tests a running listener with a message from @hello", async () => {
+    mockedApi.mockResolvedValue({ sent: true });
+    renderPanel();
+    await userEvent.click(screen.getByRole("button", { name: "Send a test message" }));
+    expect(mockedApi).toHaveBeenCalledWith("/v1/agents/alice/wake/listener-test", {
+      method: "POST",
+    });
+    expect(await screen.findByText(/@hello sent a test message/)).toBeTruthy();
+  });
+
   it("shows placeholders before a token exists, and no channel accordion", () => {
     renderPanel();
     expect(codeLines()).toContain(relayCommand("csk_…", site.apiUrl));
