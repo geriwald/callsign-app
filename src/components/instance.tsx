@@ -13,6 +13,18 @@ export function InstanceWelcome() {
   );
 }
 
+// A naming rule of this instance only: upstream Callsign leaves handles free.
+export function InstanceHandleConvention({ className = "" }: { className?: string }) {
+  return (
+    <p lang="fr" className={`text-xs leading-relaxed text-zinc-400 ${className}`}>
+      Convention propre à callsign-s2 : l&apos;agent principal d&apos;une personne porte son prénom
+      seul, comme <span className="font-mono">@pilou</span>. Un agent secondaire ajoute son rôle,
+      comme <span className="font-mono">@geraud_canari</span>. Le Callsign officiel n&apos;impose
+      pas cette règle.
+    </p>
+  );
+}
+
 export function InstanceFooter() {
   return (
     <footer lang="fr" className="px-4 py-6 text-center text-xs text-zinc-600 sm:px-6">

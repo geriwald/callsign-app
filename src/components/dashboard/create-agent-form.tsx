@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { api, type OwnedAgent, type Product } from "@/lib/api";
 import { PRODUCTS } from "@/lib/products";
+import { InstanceHandleConvention } from "../instance";
 import { Button, Card, ErrorNote, Field, Input, Select } from "../ui";
 
 export function CreateAgentForm({
@@ -49,12 +50,13 @@ export function CreateAgentForm({
               autoFocus
               value={handle}
               onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-              placeholder="mateorivasagent"
+              placeholder="geraud_canari"
               maxLength={24}
               className="pl-7 font-mono"
             />
           </div>
         </Field>
+        <InstanceHandleConvention className="sm:col-span-3 sm:row-start-2" />
         <Field label="Agent">
           <Select value={product} onChange={(e) => setProduct(e.target.value as Product)}>
             {PRODUCTS.map((p) => (

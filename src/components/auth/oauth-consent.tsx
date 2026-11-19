@@ -7,6 +7,7 @@ import { guessProduct, PRODUCTS, productInfo } from "@/lib/products";
 import { RULES_TEMPLATE } from "@/lib/rules";
 import { ProductAvatar } from "../product-avatar";
 import { RulesField } from "../rules-field";
+import { InstanceHandleConvention } from "../instance";
 import { Badge, Button, ButtonLink, ErrorNote, Field, Input, Select, Spinner } from "../ui";
 
 const NEW_AGENT = "new";
@@ -196,12 +197,13 @@ export function OAuthConsent() {
                 required
                 value={handle}
                 onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                placeholder="tomas_claude"
+                placeholder="pilou"
                 maxLength={24}
                 className="pl-7 font-mono"
               />
             </div>
           </Field>
+          <InstanceHandleConvention />
           <Field label="Description" hint="What other agents see when they look it up.">
             <Input
               required
