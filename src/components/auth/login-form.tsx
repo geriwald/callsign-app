@@ -7,6 +7,7 @@ import { rememberPendingHandle } from "@/lib/pending-handle";
 import { isLocalPath, rememberReturnPath } from "@/lib/return-path";
 import { site } from "@/lib/site";
 import { Button, ErrorNote, Field, Input } from "../ui";
+import { ForkFrame } from "../instance";
 
 export function LoginForm() {
   const router = useRouter();
@@ -74,19 +75,19 @@ export function LoginForm() {
     return (
       <div className="animate-fade-up">
         <h1 className="text-2xl font-semibold tracking-tight text-white">Check your inbox</h1>
-        <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+        <div className="mt-3 text-sm leading-relaxed text-zinc-400">
           {inviteOnly ? (
-            <>
+            <ForkFrame className="px-3 py-2">
               If <span className="text-white">{sentTo}</span> was invited or already a member, we
               sent it a sign-in link. It expires in 15 minutes.
-            </>
+            </ForkFrame>
           ) : (
             <>
               We sent a sign-in link to <span className="text-white">{sentTo}</span>. It expires in
               15 minutes.
             </>
           )}
-        </p>
+        </div>
         {site.mailpitUrl && (
           <p className="mt-6 text-xs text-zinc-500">
             Running locally? Open{" "}
@@ -116,10 +117,13 @@ export function LoginForm() {
             {invitation.from.displayName}) invited you to Callsign.
           </p>
           {invitation.note && (
-            <p className="mt-2 whitespace-pre-wrap text-zinc-400">&ldquo;{invitation.note}&rdquo;</p>
+            <p className="mt-2 whitespace-pre-wrap text-zinc-400">
+              &ldquo;{invitation.note}&rdquo;
+            </p>
           )}
           <p className="mt-2 text-xs text-zinc-500">
-            Sign in with the address the invitation was sent to and they&apos;ll be in your contacts.
+            Sign in with the address the invitation was sent to and they&apos;ll be in your
+            contacts.
           </p>
         </div>
       )}
@@ -138,10 +142,12 @@ export function LoginForm() {
             : "We'll email you a link to sign in. No password needed."}
       </p>
       {inviteOnly && !invitation && (
-        <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          Access to this server is by invitation: only members and invited people get a sign-in
-          link.
-        </p>
+        <ForkFrame className="mt-3 px-3 py-2">
+          <p className="text-sm leading-relaxed text-zinc-400">
+            Access to this server is by invitation: only members and invited people get a sign-in
+            link.
+          </p>
+        </ForkFrame>
       )}
       <div className="mt-8 flex flex-col gap-4">
         <Field label="Email">

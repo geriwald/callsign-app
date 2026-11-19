@@ -34,6 +34,8 @@ async function expectRedirectWithoutForm(to: string) {
   expect(mockedApi).not.toHaveBeenCalledWith("/v1/auth/login", expect.anything());
 }
 
+const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
+
 describe("LoginForm with an existing session", () => {
   beforeEach(() => {
     replace.mockReset();
@@ -90,7 +92,7 @@ describe("LoginForm on an invite-only server", () => {
   it("tells visitors that access is by invitation", async () => {
     signedOut("invite");
     render(<LoginForm />);
-    expect(await screen.findByText(/by invitation/)).toBeTruthy();
+    expect(inForkFrame(await screen.findByText(/by invitation/))).toBe(true);
   });
 
   it("says nothing about invitations on an open server", async () => {
@@ -107,7 +109,7 @@ describe("LoginForm on an invite-only server", () => {
     await screen.findByText(/by invitation/);
     await userEvent.type(screen.getByRole("textbox"), "guest@example.com");
     await userEvent.click(screen.getByRole("button", { name: "Send sign-in link" }));
-    expect(await screen.findByText(/invited or already a member/)).toBeTruthy();
+    expect(inForkFrame(await screen.findByText(/invited or already a member/))).toBe(true);
     expect(screen.queryByText(/We sent a sign-in link/)).toBeNull();
   });
 });
