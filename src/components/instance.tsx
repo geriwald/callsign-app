@@ -1,5 +1,8 @@
 // Instance branding, kept in one file so the fork stays easy to rebase on upstream.
 
+import Link from "next/link";
+import type { ReactNode } from "react";
+
 export function InstanceWelcome() {
   return (
     <div className="mb-10 border-b border-white/10 pb-8">
@@ -38,7 +41,45 @@ export function InstanceFooter() {
   );
 }
 
-const FORK_CHANGES = [
+export type Feature = { title: string; text: ReactNode; icon: ReactNode };
+
+const TONES = {
+  neutral: { border: "border-zinc-400", icon: "text-zinc-300" },
+  signal: { border: "border-signal", icon: "text-signal" },
+};
+
+// One card shape for upstream's features and this fork's: only the color tells them apart.
+export function FeatureCard({
+  title,
+  text,
+  icon,
+  tone,
+  ...rest
+}: Feature & { tone: keyof typeof TONES; "data-testid"?: string }) {
+  return (
+    <article
+      className={`rounded-sm border-t-2 ${TONES[tone].border} bg-white/[0.03] p-4`}
+      {...rest}
+    >
+      <svg
+        viewBox="0 0 48 48"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className={`size-10 ${TONES[tone].icon}`}
+      >
+        {icon}
+      </svg>
+      <h3 className="mt-3 text-sm font-semibold text-white">{title}</h3>
+      <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">{text}</p>
+    </article>
+  );
+}
+
+const FORK_CHANGES: Feature[] = [
   {
     title: "Stronger confidentiality",
     text: "Telegram and email notifications never show what a message says: you read it in the dashboard. It is on by default.",
@@ -73,56 +114,51 @@ const FORK_CHANGES = [
       </>
     ),
   },
+  {
+    title: "A public page per agent",
+    text: (
+      <>
+        Each agent has a page at /card/&lt;handle&gt; that you can share, so people know whom to
+        add. See the card of{" "}
+        <Link
+          href="/card/hello"
+          className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal"
+        >
+          @hello
+        </Link>
+        , the test agent anyone can message.
+      </>
+    ),
+    icon: (
+      <>
+        <rect x="6" y="10" width="36" height="28" rx="3" />
+        <circle cx="17" cy="22" r="4" />
+        <path d="M11 32c0-3.5 2.7-5.5 6-5.5s6 2 6 5.5" />
+        <path d="M28 19h9M28 25h9M28 31h5" />
+      </>
+    ),
+  },
 ];
 
-// Says what this fork changes, in a look of its own so it doesn't pass for upstream's design.
+// Says what this fork changes. Its cards share the grid of upstream's, only the color differs.
 export function InstanceForkCard() {
   return (
-    <section
-      className="relative left-1/2 mt-14 w-[min(60rem,calc(100vw-2rem))] -translate-x-1/2 rounded-md border border-signal/40 bg-signal/[0.04] p-5 sm:p-6"
-    >
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <section className="mt-16">
+      <h2 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xl font-semibold text-white">
         <span className="rounded-sm bg-signal px-2 py-0.5 font-mono text-xs font-semibold text-ink italic">
           geriwald&apos;s fork
         </span>
-        <p className="text-sm text-zinc-300">
-          This instance runs a modified version of Callsign, hosted by Géraud Benazet.
-        </p>
-      </div>
+        What this fork changes
+      </h2>
       <p className="mt-2 text-sm text-zinc-400">
-        To discover everything Callsign does, visit{" "}
-        <a
-          href="https://callsign.im"
-          className="text-signal underline decoration-signal/40 underline-offset-4 hover:decoration-signal"
-        >
-          callsign.im
-        </a>
-        . Here is what this fork changes:
+        This instance runs a modified version of Callsign, hosted by Géraud Benazet.
       </p>
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FORK_CHANGES.map((change) => (
-          <article
-            key={change.title}
-            className="rounded-sm border-t-2 border-signal bg-white/[0.03] p-4"
-          >
-            <svg
-              viewBox="0 0 48 48"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              className="size-10 text-signal"
-            >
-              {change.icon}
-            </svg>
-            <h3 className="mt-3 text-sm font-semibold text-white">{change.title}</h3>
-            <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">{change.text}</p>
-          </article>
+          <FeatureCard key={change.title} {...change} tone="signal" />
         ))}
       </div>
-      <p className="mt-4 text-right text-xs">
+      <p className="mt-4 text-xs">
         <a
           href="https://github.com/geriwald/callsign-app"
           className="text-zinc-500 underline-offset-4 hover:text-signal hover:underline"
