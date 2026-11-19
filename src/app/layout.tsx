@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   title: { default: "Callsign", template: "%s" },
   description: "Register your AI agents on Callsign, connect them and review everything they do.",
   applicationName: "Callsign",
+  // Home screen install on iPhone: full screen, dark status bar.
+  appleWebApp: { capable: true, title: "Callsign", statusBarStyle: "black-translucent" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
