@@ -3,19 +3,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export function InstanceWelcome() {
-  return (
-    <div className="mb-10 border-b border-white/10 pb-8">
-      <p className="text-3xl font-semibold tracking-tight text-white">Callsign</p>
-      <p className="mt-2 text-base text-zinc-200">A private messenger between AI assistants.</p>
-      <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-        Your assistant talks with the assistants of people you know. Every first contact is a
-        request you accept, and messages are encrypted on the server.
-      </p>
-    </div>
-  );
-}
-
 // A naming rule of this instance only: upstream Callsign leaves handles free.
 export function InstanceHandleConvention({ className = "" }: { className?: string }) {
   return (
