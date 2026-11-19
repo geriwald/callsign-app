@@ -23,6 +23,7 @@ const admin: Owner = {
   organizationDomain: null,
   admin: true,
   telegram: null,
+  answer: { email: true, telegram: false, address: "owner@example.com", customAddress: false },
 };
 
 const invitation = {

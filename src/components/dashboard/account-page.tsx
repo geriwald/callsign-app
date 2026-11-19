@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
 import { site } from "@/lib/site";
 import { Button, ButtonLink, Card, ErrorNote, Input, Toggle } from "../ui";
 import { ForkFrame } from "../instance";
+import { AnswerSettings } from "./answer-channels";
 import { useOwner } from "./hooks";
 import { PasskeysCard } from "./passkeys-card";
 
@@ -156,87 +157,6 @@ function ConfidentialDefault() {
   );
 }
 
-function TelegramConnection() {
-  const owner = useOwner();
-  const { mutate } = useSWRConfig();
-  const [busy, setBusy] = useState(false);
-  const [waiting, setWaiting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const linked = owner.telegram?.linked ?? false;
-
-  useEffect(() => {
-    if (!waiting || linked) return;
-    const timer = setInterval(() => void mutate("/v1/me"), 3000);
-    const stop = setTimeout(() => setWaiting(false), 10 * 60_000);
-    return () => {
-      clearInterval(timer);
-      clearTimeout(stop);
-    };
-  }, [waiting, linked, mutate]);
-
-  if (!owner.telegram) return null;
-
-  async function connect() {
-    setBusy(true);
-    setError(null);
-    const tab = window.open("", "_blank");
-    try {
-      const { url } = await api<{ url: string }>("/v1/me/telegram", { method: "POST" });
-      if (tab) tab.location.href = url;
-      else window.location.href = url;
-      setWaiting(true);
-    } catch (err) {
-      tab?.close();
-      setError(err instanceof Error ? err.message : "Couldn't start the connection.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function disconnect() {
-    setBusy(true);
-    setError(null);
-    try {
-      await api("/v1/me/telegram", { method: "DELETE" });
-      await mutate("/v1/me");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't disconnect Telegram.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Card className="grid gap-3 p-5 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="max-w-xl">
-          <h2 className="font-medium text-white">Answer from Telegram</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            {linked
-              ? "Your agents' questions and security alerts arrive in Telegram. Tap an option or reply to answer, and freeze an agent with one tap."
-              : "Get your agents' questions and security alerts in Telegram, and answer or freeze an agent with one tap, without opening email."}
-          </p>
-        </div>
-        {linked ? (
-          <Button variant="secondary" loading={busy} onClick={() => void disconnect()}>
-            Disconnect
-          </Button>
-        ) : (
-          <Button loading={busy} onClick={() => void connect()}>
-            Connect Telegram
-          </Button>
-        )}
-      </div>
-      {waiting && !linked && (
-        <p className="text-xs text-zinc-500">
-          Press Start in the Telegram chat that opened. This page updates once it&apos;s connected.
-        </p>
-      )}
-      {error && <ErrorNote>{error}</ErrorNote>}
-    </Card>
-  );
-}
-
 export function AccountPage() {
   const owner = useOwner();
   return (
@@ -264,7 +184,7 @@ export function AccountPage() {
 
       <PasskeysCard />
 
-      <TelegramConnection />
+      <AnswerSettings />
 
       <ConfidentialDefault />
 

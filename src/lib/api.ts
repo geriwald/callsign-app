@@ -14,6 +14,7 @@ export type Owner = {
   organizationDomain: string | null;
   admin: boolean;
   telegram: { linked: boolean } | null;
+  answer: { email: boolean; telegram: boolean; address: string; customAddress: boolean };
 };
 
 export type AgentProfile = {
