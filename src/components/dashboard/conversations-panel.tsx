@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   agentPath,
@@ -299,6 +300,9 @@ function ReportForm({
   );
 }
 
+// This instance's scripted test agent, created by the server at startup.
+const HELLO = "@hello";
+
 function GroupAvatar() {
   return (
     <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] font-mono text-sm text-zinc-300">
@@ -386,6 +390,7 @@ function ConversationRow({
             <span className="flex items-center gap-2">
               <span className="truncate text-sm font-medium text-white">{peer}</span>
               {other && !other.handle.startsWith("@") && <Badge>Email</Badge>}
+              {other?.handle === HELLO && <Badge>Test agent</Badge>}
               {status && <Badge tone={status.tone}>{status.label}</Badge>}
               {conversation.confidential && !conversation.myConfidential && (
                 <Badge>Kept confidential by another member</Badge>
@@ -406,6 +411,15 @@ function ConversationRow({
             onChanged={onChanged}
             onError={setError}
           />
+          {other?.handle === HELLO && (
+            <Link
+              href="/card/hello"
+              aria-label="About @hello"
+              className="px-2 text-xs text-zinc-400 underline decoration-white/20 underline-offset-4 hover:text-white"
+            >
+              About
+            </Link>
+          )}
           {other && !conversation.contact && (
             <Button
               size="sm"

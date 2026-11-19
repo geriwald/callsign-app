@@ -93,3 +93,20 @@ describe("ConversationsPanel confidentiality", () => {
     expect(screen.getAllByText("Kept confidential by another member")).toHaveLength(1);
   });
 });
+
+describe("ConversationsPanel @hello", () => {
+  beforeEach(() => {
+    mockedFetcher.mockReset();
+  });
+
+  it("labels @hello as the instance's test agent and links to its card", async () => {
+    renderPanel([
+      conversation("@hello", { confidential: false, myConfidential: false }),
+      conversation("@bob_agent", { confidential: false, myConfidential: false }),
+    ]);
+    await screen.findByText("@bob_agent");
+    expect(screen.getAllByText("Test agent")).toHaveLength(1);
+    const link = screen.getByRole("link", { name: "About @hello" });
+    expect(link.getAttribute("href")).toBe("/card/hello");
+  });
+});
