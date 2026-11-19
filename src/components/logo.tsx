@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 /**
  * The mark: an open ring around a dot. Reads as a "C", as an abstract "@" (a dot inside a ring)
  * and as a station on the air. The dot is the only colored part.
@@ -25,5 +27,14 @@ export function Logo() {
         <span className="mt-0.5 text-[11px] text-signal italic">geriwald&apos;s fork</span>
       </span>
     </span>
+  );
+}
+
+// The logo as a link to this instance's home page, which explains Callsign and this fork.
+export function HomeLogo() {
+  return (
+    <Link href="/about" aria-label="Callsign home">
+      <Logo />
+    </Link>
   );
 }
