@@ -540,3 +540,16 @@ export type AgentShare = {
 };
 
 export type AgentTools = { sharedTools: boolean; tools: AgentTool[]; shares: AgentShare[] };
+
+export type AgentPage =
+  | { handle: string; public: false }
+  | {
+      handle: string;
+      public: true;
+      displayName: string;
+      description: string | null;
+      product: string;
+      createdAt: string;
+      owner: { verifiedDomain: string | null; since: string };
+      email: string | null;
+    };
