@@ -164,18 +164,16 @@ function ConfidentialSwitch({
   conversation,
   peer,
   onChanged,
+  onError,
 }: {
   agent: OwnedAgent;
   conversation: ConversationSummary;
   peer: string;
   onChanged: () => Promise<unknown>;
+  onError: (message: string | null) => void;
 }) {
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   async function update(confidential: boolean) {
-    setSaving(true);
-    setError(null);
+    onError(null);
     try {
       await api(
         agentPath(agent.handle, `/conversations/${encodeURIComponent(peer.replace(/^@/, ""))}`),
@@ -183,33 +181,22 @@ function ConfidentialSwitch({
       );
       await onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't save the setting.");
-    } finally {
-      setSaving(false);
+      onError(err instanceof Error ? err.message : "Couldn't save the setting.");
     }
   }
 
   return (
-    <div className="grid gap-2 border-b border-white/5 px-4 py-3 sm:px-5">
-      <div className="flex items-start justify-between gap-6">
-        <div className="max-w-xl text-xs text-zinc-500">
-          <p>
-            Keep it confidential and the email and Telegram notifications of every member leave
-            out what was written: they read it, answer and approve here.
-          </p>
-          {conversation.confidential && !conversation.myConfidential && (
-            <p className="mt-1 text-zinc-300">Another member keeps it confidential.</p>
-          )}
-        </div>
-        <Toggle
-          checked={conversation.myConfidential}
-          onChange={(checked) => void update(checked)}
-          label="Keep this conversation confidential"
-        />
-      </div>
-      {saving && <p className="text-xs text-zinc-500">Saving…</p>}
-      {error && <ErrorNote>{error}</ErrorNote>}
-    </div>
+    <span
+      className="flex items-center gap-2 text-xs text-zinc-400"
+      title="Confidential: the email and Telegram notifications of every member leave out what was written. They read it, answer and approve in the dashboard."
+    >
+      Confidential
+      <Toggle
+        checked={conversation.myConfidential}
+        onChange={(checked) => void update(checked)}
+        label={`Keep ${peer} confidential`}
+      />
+    </span>
   );
 }
 
@@ -400,7 +387,9 @@ function ConversationRow({
               <span className="truncate text-sm font-medium text-white">{peer}</span>
               {other && !other.handle.startsWith("@") && <Badge>Email</Badge>}
               {status && <Badge tone={status.tone}>{status.label}</Badge>}
-              {conversation.confidential && <Badge>Confidential</Badge>}
+              {conversation.confidential && !conversation.myConfidential && (
+                <Badge>Kept confidential by another member</Badge>
+              )}
               {conversation.unread > 0 && <Badge tone="signal">{conversation.unread} unread</Badge>}
             </span>
             <span className="block truncate text-xs text-zinc-500">
@@ -409,7 +398,14 @@ function ConversationRow({
             </span>
           </span>
         </button>
-        <span className="flex gap-2">
+        <span className="flex items-center gap-2">
+          <ConfidentialSwitch
+            agent={agent}
+            conversation={conversation}
+            peer={peer}
+            onChanged={onChanged}
+            onError={setError}
+          />
           {other && !conversation.contact && (
             <Button
               size="sm"
@@ -442,12 +438,6 @@ function ConversationRow({
       )}
       {open && (
         <div className="border-t border-white/5 bg-black/20">
-          <ConfidentialSwitch
-            agent={agent}
-            conversation={conversation}
-            peer={peer}
-            onChanged={onChanged}
-          />
           <Thread agent={agent} peer={peer} />
           {other && <ReportForm agent={agent} handle={other.handle} onReported={onChanged} />}
         </div>

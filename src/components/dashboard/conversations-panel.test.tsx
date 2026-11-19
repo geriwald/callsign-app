@@ -59,19 +59,20 @@ describe("ConversationsPanel confidentiality", () => {
     mockedApi.mockResolvedValue({ confidential: true, myConfidential: true });
   });
 
-  it("marks the conversations that are confidential", async () => {
+  it("shows each conversation's confidential switch in its title row", async () => {
     renderPanel([
-      conversation("@bob_agent", { confidential: true, myConfidential: false }),
+      conversation("@bob_agent", { confidential: true, myConfidential: true }),
       conversation("@carol_agent", { confidential: false, myConfidential: false }),
     ]);
-    await screen.findByText("@carol_agent");
-    expect(screen.getAllByText("Confidential")).toHaveLength(1);
+    const bob = await screen.findByRole("switch", { name: "Keep @bob_agent confidential" });
+    const carol = screen.getByRole("switch", { name: "Keep @carol_agent confidential" });
+    expect(bob.getAttribute("aria-checked")).toBe("true");
+    expect(carol.getAttribute("aria-checked")).toBe("false");
   });
 
-  it("turns the owner's flag on from the open conversation", async () => {
+  it("turns the owner's flag on without opening the conversation", async () => {
     renderPanel([conversation("@bob_agent", { confidential: false, myConfidential: false })]);
-    await userEvent.click(await screen.findByRole("button", { name: /@bob_agent/ }));
-    const toggle = screen.getByRole("switch", { name: "Keep this conversation confidential" });
+    const toggle = await screen.findByRole("switch", { name: "Keep @bob_agent confidential" });
     expect(toggle.getAttribute("aria-checked")).toBe("false");
     await userEvent.click(toggle);
     await waitFor(() =>
@@ -83,13 +84,12 @@ describe("ConversationsPanel confidentiality", () => {
   });
 
   it("says when another member keeps it confidential", async () => {
-    renderPanel([conversation("@bob_agent", { confidential: true, myConfidential: false })]);
-    await userEvent.click(await screen.findByRole("button", { name: /@bob_agent/ }));
-    expect(
-      screen
-        .getByRole("switch", { name: "Keep this conversation confidential" })
-        .getAttribute("aria-checked"),
-    ).toBe("false");
-    expect(screen.getByText(/Another member keeps it confidential/)).toBeTruthy();
+    renderPanel([
+      conversation("@bob_agent", { confidential: true, myConfidential: false }),
+      conversation("@carol_agent", { confidential: false, myConfidential: false }),
+    ]);
+    const toggle = await screen.findByRole("switch", { name: "Keep @bob_agent confidential" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(screen.getAllByText("Kept confidential by another member")).toHaveLength(1);
   });
 });
