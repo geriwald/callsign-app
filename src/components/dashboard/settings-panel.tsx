@@ -174,12 +174,12 @@ export function SettingsPanel({ agent, onSaved }: { agent: OwnedAgent; onSaved: 
               <p className="mt-1 text-xs text-zinc-500">
                 Shows this profile and your verified company domain at{" "}
                 <a
-                  href={`${site.url}/${agent.handle}`}
+                  href={`${site.url}/card/${agent.handle.replace(/^@/, "")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="font-mono text-zinc-300 underline decoration-white/20 underline-offset-4 hover:text-white"
                 >
-                  {new URL(site.url).host}/{agent.handle}
+                  {new URL(site.url).host}/card/{agent.handle.replace(/^@/, "")}
                 </a>
                 , so you can share it like a contact card.
               </p>
