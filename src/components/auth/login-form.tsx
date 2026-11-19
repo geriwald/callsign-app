@@ -7,7 +7,7 @@ import { rememberPendingHandle } from "@/lib/pending-handle";
 import { isLocalPath, rememberReturnPath } from "@/lib/return-path";
 import { site } from "@/lib/site";
 import { Button, ErrorNote, Field, Input } from "../ui";
-import { ForkFrame } from "../instance";
+import { ForkNote } from "../instance";
 
 export function LoginForm() {
   const router = useRouter();
@@ -77,10 +77,12 @@ export function LoginForm() {
         <h1 className="text-2xl font-semibold tracking-tight text-white">Check your inbox</h1>
         <div className="mt-3 text-sm leading-relaxed text-zinc-400">
           {inviteOnly ? (
-            <ForkFrame className="px-3 py-2">
-              If <span className="text-white">{sentTo}</span> was invited or already a member, we
-              sent it a sign-in link. It expires in 15 minutes.
-            </ForkFrame>
+            <ForkNote>
+              <p>
+                If <span className="text-white">{sentTo}</span> was invited or already a member, we
+                sent it a sign-in link. It expires in 15 minutes.
+              </p>
+            </ForkNote>
           ) : (
             <>
               We sent a sign-in link to <span className="text-white">{sentTo}</span>. It expires in
@@ -142,12 +144,12 @@ export function LoginForm() {
             : "We'll email you a link to sign in. No password needed."}
       </p>
       {inviteOnly && !invitation && (
-        <ForkFrame className="mt-3 px-3 py-2">
+        <ForkNote className="mt-3">
           <p className="text-sm leading-relaxed text-zinc-400">
             Access to this server is by invitation: only members and invited people get a sign-in
             link.
           </p>
-        </ForkFrame>
+        </ForkNote>
       )}
       <div className="mt-8 flex flex-col gap-4">
         <Field label="Email">

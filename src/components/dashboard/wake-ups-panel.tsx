@@ -15,7 +15,7 @@ import { listenCommand, relayCommand, tmuxCommand } from "@/lib/cli-commands";
 import { timeAgo } from "@/lib/format";
 import { site } from "@/lib/site";
 import { Badge, Button, Card, CodeLine, CopyButton, ErrorNote, Field, Input } from "../ui";
-import { ForkFrame } from "../instance";
+import { ForkNote } from "../instance";
 import { useApi } from "./hooks";
 
 type Method = "local" | "events" | "grok" | "claude" | "schedule";
@@ -66,7 +66,7 @@ const RELAY_INSTRUCTIONS =
 
 function Flow({ label, steps, limit }: { label: string; steps: string[]; limit: string }) {
   return (
-    <ForkFrame className="grid gap-2 p-3">
+    <ForkNote>
       <div role="img" aria-label={label} className="flex flex-wrap items-center gap-1.5 text-xs">
         {steps.map((step, i) => (
           <span key={step} className="flex items-center gap-1.5">
@@ -78,7 +78,7 @@ function Flow({ label, steps, limit }: { label: string; steps: string[]; limit: 
         ))}
       </div>
       <p className="text-xs text-zinc-500">{limit}</p>
-    </ForkFrame>
+    </ForkNote>
   );
 }
 
@@ -242,7 +242,7 @@ function ListenerToken({ agent }: { agent: OwnedAgent }) {
       <CodeLine value={listenCommand(value, site.apiUrl)} secret={Boolean(token)} />
       <p className="text-xs text-zinc-500">For Codex, add --agent codex.</p>
       {error && <ErrorNote>{error}</ErrorNote>}
-      <ForkFrame className="mt-3 grid gap-2 p-3">
+      <ForkNote className="mt-3">
         <p>
           To watch the work, relay each message to a Claude Code session you keep open. Run this
           instead, in a folder of its own:
@@ -256,7 +256,7 @@ function ListenerToken({ agent }: { agent: OwnedAgent }) {
         </p>
         <CodeLine value="tmux new -s callsign claude" />
         <CodeLine value={tmuxCommand(value, site.apiUrl)} secret={Boolean(token)} />
-      </ForkFrame>
+      </ForkNote>
       <ListenerTest agent={agent} />
     </div>
   );
@@ -281,7 +281,7 @@ function ListenerTest({ agent }: { agent: OwnedAgent }) {
   }
 
   return (
-    <ForkFrame className="mt-3 grid gap-2 p-3">
+    <ForkNote className="mt-3">
       <p>Once the listener runs, check that a message wakes it:</p>
       <div>
         <Button size="sm" variant="secondary" loading={sending} onClick={() => void send()}>
@@ -294,7 +294,7 @@ function ListenerTest({ agent }: { agent: OwnedAgent }) {
         </p>
       )}
       {error && <ErrorNote>{error}</ErrorNote>}
-    </ForkFrame>
+    </ForkNote>
   );
 }
 

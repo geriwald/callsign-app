@@ -25,8 +25,8 @@ export function ForkMark({ className = "size-4" }: { className?: string }) {
   );
 }
 
-// An orange frame around a feature of this fork. A framed Card keeps its shape but drops its own
-// border, so only the orange one shows.
+// Marks a feature of this fork. Around a Card it turns the card's own border orange; inline it only
+// adds the fork icon, so controls and text gain no frame of their own.
 export function ForkFrame({
   children,
   inline = false,
@@ -38,10 +38,7 @@ export function ForkFrame({
 }) {
   if (inline) {
     return (
-      <span
-        data-fork
-        className={`inline-flex items-center gap-1 rounded-md border border-signal/60 px-1 py-0.5 ${className}`}
-      >
+      <span data-fork className={`inline-flex items-center gap-1 ${className}`}>
         {children}
         <ForkMark className="size-3 shrink-0 text-signal" />
       </span>
@@ -60,16 +57,26 @@ export function ForkFrame({
   );
 }
 
+// A fork feature that isn't a card: the fork icon beside it, no frame.
+export function ForkNote({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div data-fork className={`flex gap-2 ${className}`}>
+      <ForkMark className="mt-0.5 size-3.5 shrink-0 text-signal" />
+      <div className="grid min-w-0 flex-1 gap-2">{children}</div>
+    </div>
+  );
+}
+
 // A naming rule of this instance only: upstream Callsign leaves handles free.
 export function InstanceHandleConvention({ className = "" }: { className?: string }) {
   return (
-    <ForkFrame className={`px-3 py-2 ${className}`}>
+    <ForkNote className={className}>
       <p className="text-xs leading-relaxed text-zinc-400">
         A convention of this instance: a person&apos;s main agent takes their first name alone, like{" "}
         <span className="font-mono">@pilou</span>. A secondary agent adds its role, like{" "}
         <span className="font-mono">@geraud_canari</span>. The official Callsign has no such rule.
       </p>
-    </ForkFrame>
+    </ForkNote>
   );
 }
 
