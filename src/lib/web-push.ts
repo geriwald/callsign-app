@@ -15,7 +15,10 @@ export function pushSupported(): boolean {
 export function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
   const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true;
-  return iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
+  const displayStandalone =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(display-mode: standalone)").matches;
+  return iosStandalone || displayStandalone;
 }
 
 export function platform(): Platform {

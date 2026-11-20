@@ -1,5 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, fetcher, type Owner } from "@/lib/api";
@@ -31,23 +30,21 @@ const owner: Owner = {
   answer: { email: true, telegram: false, push: false, address: "owner@example.com", customAddress: false },
 };
 
-const inForkFrame = (el: Element) => el.closest("[data-fork]") !== null;
 
-describe("AccountPage confidentiality default", () => {
+describe("AccountPage", () => {
   beforeEach(() => {
     mockedApi.mockReset();
     mockedFetcher.mockReset();
     mockedFetcher.mockImplementation((path: string) =>
       Promise.resolve(
         path === "/v1/me/push"
-          ? { publicKey: null, devices: [] }
+          ? { publicKey: "pk", devices: [] }
           : { passkeys: [], reset: null, elevatedUntil: null },
       ),
     );
-    mockedApi.mockResolvedValue({ owner: { ...owner, confidentialDefault: false } });
   });
 
-  it("shows the default and saves a change", async () => {
+  it("puts notifications first and the data cards last, with no confidentiality setting", async () => {
     render(
       <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
         <OwnerContext.Provider value={owner}>
@@ -55,15 +52,18 @@ describe("AccountPage confidentiality default", () => {
         </OwnerContext.Provider>
       </SWRConfig>,
     );
-    const toggle = screen.getByRole("switch", { name: "Make new conversations confidential" });
-    expect(toggle.getAttribute("aria-checked")).toBe("true");
-    expect(inForkFrame(screen.getByText("Confidential by default"))).toBe(true);
-    await userEvent.click(toggle);
-    await waitFor(() =>
-      expect(mockedApi).toHaveBeenCalledWith("/v1/me", {
-        method: "PATCH",
-        body: { confidentialDefault: false },
-      }),
-    );
+    await screen.findByRole("heading", { name: "Web app" });
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(headings).toEqual([
+      "Notifications",
+      "Web app",
+      "Email",
+      "Passkeys",
+      "Export your data",
+      "Delete account",
+    ]);
+    expect(screen.queryByText(/Confidential by default/)).toBeNull();
+    expect(screen.getByText("Content stays in the app")).toBeTruthy();
+    expect(screen.getByText(/Install it on the home screen/)).toBeTruthy();
   });
 });

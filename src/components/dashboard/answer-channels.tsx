@@ -12,7 +12,7 @@ import {
   subscribeDevice,
 } from "@/lib/web-push";
 import { Button, Card, ErrorNote, Input, Toggle } from "../ui";
-import { ForkFrame, ForkMark } from "../instance";
+import { ForkFrame } from "../instance";
 import { useApi, useOwner } from "./hooks";
 
 function errorText(err: unknown, fallback: string) {
@@ -54,7 +54,7 @@ function TestButton({ channel, label }: { channel: "email" | "telegram"; label: 
 function ChannelCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Card className="grid content-start gap-3 p-5 sm:p-6">
-      <h3 className="font-medium text-white">{title}</h3>
+      <h2 className="font-medium text-white">{title}</h2>
       {children}
     </Card>
   );
@@ -86,12 +86,32 @@ function AnswerCard() {
     }
   }
 
+  const installHint = !tested && !push;
+
   return (
-    <ChannelCard title="Answer">
+    <ChannelCard title="Notifications">
       <p className="text-sm text-zinc-500">
         Where your agents&apos; questions and approvals reach you. Keep at least one. Security
         alerts always come by email, and on Telegram when it&apos;s connected.
       </p>
+      {devices?.publicKey && (
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm text-zinc-300">
+            Web app
+            {installHint && (
+              <span className="block text-xs text-zinc-500">
+                Install the app and pass its test question first.
+              </span>
+            )}
+          </span>
+          <Toggle
+            checked={push}
+            disabled={installHint || (push && on === 1)}
+            onChange={(checked) => void update({ answerPush: checked })}
+            label="Answer in the web app"
+          />
+        </div>
+      )}
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm text-zinc-300">Email</span>
         <Toggle
@@ -112,32 +132,11 @@ function AnswerCard() {
           />
         </div>
       )}
-      {devices?.publicKey && (
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-sm text-zinc-300">
-            Web app
-            {!tested && !push && (
-              <span className="block text-xs text-zinc-500">
-                Pass a test question on a device first.
-              </span>
-            )}
-          </span>
-          <Toggle
-            checked={push}
-            disabled={(!push && !tested) || (push && on === 1)}
-            onChange={(checked) => void update({ answerPush: checked })}
-            label="Answer in the web app"
-          />
-        </div>
-      )}
       <div className="grid gap-1 border-t border-white/5 pt-3">
-        <p className="flex items-center gap-1.5 text-sm text-zinc-300">
-          Confidential mode <ForkMark className="size-3.5 text-signal" />
-        </p>
+        <p className="text-sm font-medium text-signal">Content stays in the app</p>
         <p className="text-sm text-zinc-500">
-          On this server, conversations are confidential by default: their content isn&apos;t sent
-          to Telegram or by email, so it&apos;s exposed in fewer places. You read it in this
-          dashboard.
+          Email, Telegram and notifications say which agent asked and when, never what. You read
+          and answer in this app.
         </p>
       </div>
       {error && <ErrorNote>{error}</ErrorNote>}
@@ -452,30 +451,32 @@ function PushDiagnostics() {
   );
 }
 
+const INSTALL_STEPS = {
+  ios: [
+    "Open this page in Safari and tap Share.",
+    "Choose Add to Home Screen (iOS 16.4 or later).",
+    "Open Callsign from your home screen and sign in with the code from the sign-in email.",
+    "Come back to this page and turn on notifications.",
+  ],
+  android: [
+    "In Chrome, open the menu and choose Install app.",
+    "Open Callsign from your home screen.",
+    "Come back to this page and turn on notifications.",
+  ],
+  other: [
+    "Open callsign.geriwald.com on your phone.",
+    "Install it on the home screen, then turn on notifications from this page in the app.",
+  ],
+};
+
 function InstallSteps() {
-  const kind = platform();
-  if (kind === "ios") {
-    return (
-      <p className="text-sm text-zinc-500">
-        On this iPhone, open this page in Safari, tap Share, then Add to Home Screen (iOS 16.4 or
-        later). Open Callsign from the home screen, sign in with the code from your sign-in email,
-        and come back here.
-      </p>
-    );
-  }
-  if (kind === "android") {
-    return (
-      <p className="text-sm text-zinc-500">
-        In Chrome, open the menu and choose Install app, then open Callsign from your home screen.
-        Notifications also work without installing it.
-      </p>
-    );
-  }
+  const steps = INSTALL_STEPS[platform()];
   return (
-    <p className="text-sm text-zinc-500">
-      Open this page on your phone to install Callsign on its home screen. This browser can also
-      get notifications while it&apos;s open.
-    </p>
+    <ol className="grid list-decimal gap-1.5 pl-5 text-sm text-zinc-400">
+      {steps.map((step) => (
+        <li key={step}>{step}</li>
+      ))}
+    </ol>
   );
 }
 
@@ -507,9 +508,16 @@ function WebAppCard() {
     }
   }
 
+  if (!installed) {
+    return (
+      <ChannelCard title="Web app">
+        <InstallSteps />
+      </ChannelCard>
+    );
+  }
+
   return (
     <ChannelCard title="Web app">
-      {!installed && <InstallSteps />}
       {supported ? (
         <div>
           <Button size="sm" loading={busy} onClick={() => void enable()}>
@@ -517,10 +525,7 @@ function WebAppCard() {
           </Button>
         </div>
       ) : (
-        <p className="text-xs text-zinc-500">
-          This browser can&apos;t receive notifications.
-          {platform() === "ios" && " On an iPhone, add Callsign to the home screen first."}
-        </p>
+        <p className="text-xs text-zinc-500">This device can&apos;t receive notifications.</p>
       )}
       {error && <ErrorNote>{error}</ErrorNote>}
       {data.devices.length > 0 && (
@@ -530,7 +535,12 @@ function WebAppCard() {
           ))}
         </ul>
       )}
-      <PushDiagnostics />
+      <details className="text-xs text-zinc-500">
+        <summary className="cursor-pointer hover:text-zinc-300">Diagnostic</summary>
+        <div className="mt-2">
+          <PushDiagnostics />
+        </div>
+      </details>
     </ChannelCard>
   );
 }
@@ -587,6 +597,7 @@ export function AnswerSettings() {
       <ForkFrame>
         <AnswerCard />
       </ForkFrame>
+      <WebAppFrame />
       <ForkFrame>
         <EmailCard />
       </ForkFrame>
@@ -595,7 +606,6 @@ export function AnswerSettings() {
           <TelegramCard />
         </ForkFrame>
       )}
-      <WebAppFrame />
     </div>
   );
 }
