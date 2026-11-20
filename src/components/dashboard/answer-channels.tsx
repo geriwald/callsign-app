@@ -350,13 +350,11 @@ function DeviceRow({ device, onChanged }: { device: PushDevice; onChanged: () =>
     }
   }
 
-  const test = (kind: "notification" | "question") =>
+  const test = (kind: "question") =>
     run(
       kind,
       () => api(`/v1/me/push/${device.id}/test`, { method: "POST", body: { kind } }),
-      kind === "question"
-        ? "Sent. Tap the notification: it should open this page and confirm the test."
-        : "Sent. Check that it arrived.",
+      "Sent. Open it from the notification: this page confirms the test.",
     );
 
   return (
@@ -386,22 +384,14 @@ function DeviceRow({ device, onChanged }: { device: PushDevice; onChanged: () =>
           Remove
         </Button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          loading={busy === "notification"}
-          onClick={() => void test("notification")}
-        >
-          Test notification
-        </Button>
+      <div>
         <Button
           size="sm"
           variant="secondary"
           loading={busy === "question"}
           onClick={() => void test("question")}
         >
-          Test question
+          Send a test
         </Button>
       </div>
       {note && <p className="text-xs text-zinc-400">{note}</p>}

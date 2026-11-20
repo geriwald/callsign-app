@@ -162,19 +162,15 @@ describe("AnswerSettings", () => {
     });
   });
 
-  it("sends both tests to a device", async () => {
+  it("sends one test to a device, which proves the whole path once tapped", async () => {
     devices = [{ id: "d1", label: "iPhone", createdAt: "", tested: false }];
     renderWith(base);
-    await userEvent.click(await screen.findByRole("button", { name: "Test notification" }));
-    await userEvent.click(screen.getByRole("button", { name: "Test question" }));
-    expect(mockedApi).toHaveBeenCalledWith("/v1/me/push/d1/test", {
-      method: "POST",
-      body: { kind: "notification" },
-    });
+    await userEvent.click(await screen.findByRole("button", { name: "Send a test" }));
     expect(mockedApi).toHaveBeenCalledWith("/v1/me/push/d1/test", {
       method: "POST",
       body: { kind: "question" },
     });
+    expect(screen.queryByRole("button", { name: "Test notification" })).toBeNull();
   });
 
   it("confirms a tapped test question when the app opens on this page", async () => {
