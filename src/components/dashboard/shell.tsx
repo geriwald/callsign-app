@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
-import { Logo, LogoMark } from "../logo";
+import { Logo } from "../logo";
 import { InstanceFooter } from "../instance";
 import { Badge, Button } from "../ui";
 import { usePendingApprovals } from "./approvals";
@@ -71,13 +71,15 @@ export function DashboardHeader() {
     router.replace("/login");
   }
 
-  function link(item: NavItem, onClick?: () => void) {
+  function link(item: NavItem, onClick?: () => void, compact = false) {
     return (
       <Link
         key={item.href}
         href={item.href}
         onClick={onClick}
-        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 whitespace-nowrap transition sm:px-3 ${
+        className={`flex items-center gap-1 rounded-full py-1.5 whitespace-nowrap transition ${
+          compact ? "px-1.5" : "px-3"
+        } ${
           isActive(item.href) ? "bg-white/[0.06] text-white" : "text-zinc-500 hover:text-white"
         }`}
       >
@@ -89,16 +91,13 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-ink/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-1 px-3 sm:gap-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-2 sm:gap-6">
           <Link href="/about" aria-label="Callsign home" className="shrink-0">
-            <LogoMark className="size-[22px] text-white lg:hidden" />
-            <span className="hidden lg:block">
-              <Logo />
-            </span>
+            <Logo />
           </Link>
-          <nav aria-label="Phone" className="flex items-center gap-0.5 text-sm md:hidden">
-            {primary.map((item) => link(item))}
+          <nav aria-label="Phone" className="flex items-center text-xs md:hidden">
+            {primary.map((item) => link(item, undefined, true))}
           </nav>
           <nav aria-label="Main" className="hidden items-center gap-1 text-sm md:flex">
             {[...primary, ...secondary].map((item) => link(item))}
