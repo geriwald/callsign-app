@@ -25,8 +25,7 @@ export function ForkMark({ className = "size-4" }: { className?: string }) {
   );
 }
 
-// Marks a feature of this fork. Around a Card it turns the card's own border orange; inline it only
-// adds the fork icon, so controls and text gain no frame of their own.
+// Marks a feature of this fork with the fork icon: on a card's top edge, or beside inline content.
 export function ForkFrame({
   children,
   inline = false,
@@ -45,11 +44,8 @@ export function ForkFrame({
     );
   }
   return (
-    <div
-      data-fork
-      className={`relative rounded-2xl border border-signal/60 [&>section]:border-transparent ${className}`}
-    >
-      <span className="absolute -top-2.5 right-4 bg-ink px-1 text-signal">
+    <div data-fork className={`relative ${className}`}>
+      <span className="absolute -top-2.5 right-4 z-10 bg-ink px-1 text-signal">
         <ForkMark className="size-4" />
       </span>
       {children}
