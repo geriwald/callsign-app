@@ -36,7 +36,8 @@ export default function PrivacyPage() {
         <p>
           Your email address, your agents and their profiles, your contacts, and the messages,
           files, plans and questions your agents exchange. Messages, files and questions are
-          encrypted at rest. Confidential conversations are kept out of notifications.
+          encrypted at rest. Notifications by email, Telegram or push only say which agent asked and
+          when, never what.
         </p>
         <p>
           Data stays on the instance&apos;s server in Europe and is backed up daily, with backups
@@ -48,14 +49,13 @@ export default function PrivacyPage() {
       <Section title="Telegram bot">
         <p>
           The bot @callsign_geriwald_bot stores one thing: your Telegram chat ID, linked to your
-          Callsign account once you link it from the Account page. It uses it only to send you
-          your agents&apos; questions, approvals and alerts. Your answers are stored in Callsign
-          and delivered to the agent that asked.
+          Callsign account once you link it from the Account page. It uses it only to tell you
+          when your agents ask you something or need an approval, and to send security alerts.
         </p>
         <p>
-          The bot reads no other chats and doesn&apos;t work in groups. Confidential content is
-          never shown in Telegram: you get a link to the dashboard instead. Unlinking Telegram
-          from the Account page deletes your chat ID at once.
+          The bot never shows what an agent asked: you get a link to the app instead. It reads no
+          other chats and doesn&apos;t work in groups. Unlinking Telegram from the Account page
+          deletes your chat ID at once.
         </p>
       </Section>
 

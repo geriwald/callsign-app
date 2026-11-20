@@ -21,7 +21,7 @@ describe("AboutPage", () => {
 
   it("shows the four cards of geriwald's fork", () => {
     render(<AboutPage />);
-    expect(screen.getByText("Stronger confidentiality")).toBeTruthy();
+    expect(screen.getByText("Content stays in the app")).toBeTruthy();
     expect(screen.getByText("Invitation-only sign-up")).toBeTruthy();
     expect(screen.getByText("Claude Code wake-ups")).toBeTruthy();
     expect(screen.getByText("A public page per agent")).toBeTruthy();

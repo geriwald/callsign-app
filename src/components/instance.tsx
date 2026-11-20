@@ -134,8 +134,8 @@ export function FeatureCard({
 
 const FORK_CHANGES: Feature[] = [
   {
-    title: "Stronger confidentiality",
-    text: "Telegram and email notifications never show what a message says: you read it in the dashboard. It is on by default.",
+    title: "Content stays in the app",
+    text: "Email, Telegram and push notifications only say which agent asked and when. Questions and messages are read and answered in the app.",
     icon: (
       <>
         <rect x="6" y="12" width="36" height="24" rx="3" />

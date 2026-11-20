@@ -16,8 +16,8 @@ import {
 import { fullDate, timeAgo } from "@/lib/format";
 import { site } from "@/lib/site";
 import { ProductAvatar } from "../product-avatar";
-import { Badge, Button, Card, ErrorNote, Field, Select, Spinner, Textarea, Toggle } from "../ui";
-import { ForkFrame, ForkMark } from "../instance";
+import { Badge, Button, Card, ErrorNote, Field, Select, Spinner, Textarea } from "../ui";
+import { ForkFrame } from "../instance";
 import { useApi, useLiveEvents } from "./hooks";
 
 type Tone = "neutral" | "signal" | "danger";
@@ -158,54 +158,6 @@ function Thread({ agent, peer }: { agent: OwnedAgent; peer: string }) {
         <li className="text-center text-sm text-zinc-500">No messages yet.</li>
       )}
     </ol>
-  );
-}
-
-function ConfidentialSwitch({
-  agent,
-  conversation,
-  peer,
-  onChanged,
-  onError,
-}: {
-  agent: OwnedAgent;
-  conversation: ConversationSummary;
-  peer: string;
-  onChanged: () => Promise<unknown>;
-  onError: (message: string | null) => void;
-}) {
-  async function update(confidential: boolean) {
-    onError(null);
-    try {
-      await api(
-        agentPath(agent.handle, `/conversations/${encodeURIComponent(peer.replace(/^@/, ""))}`),
-        { method: "PATCH", body: { confidential } },
-      );
-      await onChanged();
-    } catch (err) {
-      onError(err instanceof Error ? err.message : "Couldn't save the setting.");
-    }
-  }
-
-  const heldByOther = conversation.confidential && !conversation.myConfidential;
-  return (
-    <span
-      data-fork
-      className="flex items-center gap-2 text-xs text-zinc-400"
-      title={
-        heldByOther
-          ? "Kept confidential by another member: it stays confidential whatever you choose."
-          : "Confidential: the email and Telegram notifications of every member leave out what was written. They read it, answer and approve in the dashboard."
-      }
-    >
-      Confidential
-      <Toggle
-        checked={conversation.confidential}
-        onChange={() => void update(!conversation.myConfidential)}
-        label={`Keep ${peer} confidential`}
-      />
-      <ForkMark className="size-3 shrink-0 text-signal" />
-    </span>
   );
 }
 
@@ -413,13 +365,6 @@ function ConversationRow({
           </span>
         </button>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <ConfidentialSwitch
-            agent={agent}
-            conversation={conversation}
-            peer={peer}
-            onChanged={onChanged}
-            onError={setError}
-          />
           {other?.handle === HELLO && (
             <Link
               href="/card/hello"
