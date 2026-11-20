@@ -24,7 +24,7 @@ export function Logo() {
       <LogoMark className="size-[22px]" />
       <span className="flex flex-col leading-none">
         <span className="text-[17px] font-semibold tracking-[-0.03em]">callsign</span>
-        <span className="mt-0.5 text-[11px] text-signal italic">geriwald&apos;s fork</span>
+        <span className="mt-0.5 text-[9.1px] text-signal italic">geriwald&apos;s fork</span>
       </span>
     </span>
   );
