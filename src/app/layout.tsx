@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@/components/analytics";
+import { IncomingBanner } from "@/components/incoming-banner";
 import { NotificationNavigator } from "@/components/notification-navigator";
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <Analytics />
         <NotificationNavigator />
+        <IncomingBanner />
       </body>
     </html>
   );

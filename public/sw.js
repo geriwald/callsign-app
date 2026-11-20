@@ -1,7 +1,7 @@
 // Callsign service worker: shows push notifications and opens the dashboard when one is tapped.
 // No offline cache on purpose: the dashboard always talks to the live API.
 
-const VERSION = "0.6.4";
+const VERSION = "0.7.0";
 const PENDING_CACHE = "callsign-pending-navigation";
 const LOG_KEY = "/__log";
 const PENDING_KEY = "/__pending-navigation";
@@ -27,13 +27,26 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
   const data = event.data.json();
   event.waitUntil(
-    log("push", data.url).then(() => self.registration.showNotification(data.title, {
+    log("push", data.url).then(() => {
+      // iOS doesn't hand a tap on a notification to an app in the foreground, so an open app
+      // shows its own banner from this broadcast.
+      try {
+        new BroadcastChannel("callsign").postMessage({
+          type: "callsign:incoming",
+          title: data.title,
+          url: data.url,
+        });
+      } catch {
+        // No BroadcastChannel: the notification alone is shown.
+      }
+      return self.registration.showNotification(data.title, {
       body: data.body,
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       tag: data.tag,
       data: { url: data.url },
-    })),
+    });
+    }),
   );
 });
 
