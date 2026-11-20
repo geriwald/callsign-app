@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NotificationNavigator } from "./notification-navigator";
 
 describe("NotificationNavigator", () => {
-  const target = new EventTarget();
+  const target = Object.assign(new EventTarget(), {
+    ready: Promise.resolve({ active: { postMessage: vi.fn() } }),
+  });
   const assign = vi.fn();
 
   afterEach(() => vi.unstubAllGlobals());
@@ -29,5 +31,16 @@ describe("NotificationNavigator", () => {
     expect(assign).not.toHaveBeenCalled();
     post({ type: "callsign:navigate", url: "https://callsign.example/dashboard/account?push-test=t" });
     expect(assign).toHaveBeenCalledWith("https://callsign.example/dashboard/account?push-test=t");
+  });
+
+  it("asks the worker for a pending page when it becomes visible", async () => {
+    setup();
+    const registration = await target.ready;
+    const ask = vi.mocked(registration.active.postMessage);
+    ask.mockClear();
+    window.dispatchEvent(new Event("focus"));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(ask).toHaveBeenCalledWith({ type: "callsign:pending?" });
   });
 });
