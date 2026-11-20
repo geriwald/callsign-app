@@ -58,3 +58,22 @@ describe("PublicHeader", () => {
     expect(screen.getByRole("link", { name: "Callsign home" })).toBeTruthy();
   });
 });
+
+describe("DashboardHeader on a phone", () => {
+  beforeEach(() => mockedFetcher.mockReset());
+
+  it("folds the navigation into a menu button", async () => {
+    mockedFetcher.mockImplementation(async (path: string) =>
+      path === "/v1/me" ? { owner } : { holds: [], pending: 0 },
+    );
+    renderHeader();
+    const button = await screen.findByRole("button", { name: "Menu" });
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByRole("navigation", { name: "Menu" })).toBeNull();
+    button.click();
+    const menu = await screen.findByRole("navigation", { name: "Menu" });
+    expect(menu.textContent).toContain("Connections");
+    expect(menu.textContent).toContain("Sign out");
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+  });
+});
