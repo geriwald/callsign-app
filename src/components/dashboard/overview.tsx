@@ -14,7 +14,6 @@ import { ActivityFeed } from "./activity-feed";
 import { CreateAgentForm } from "./create-agent-form";
 import { useApi, useLiveEvents } from "./hooks";
 import { LiveNow } from "./live-sessions";
-import { PendingQuestions } from "./pending-questions";
 import { PendingRegistrations } from "./pending-registrations";
 import { PendingApprovals } from "./approvals";
 import { SecurityAlerts } from "./security";
@@ -61,7 +60,6 @@ export function Overview() {
     <div className="grid gap-10">
       <SecurityAlerts />
       <PendingApprovals />
-      <PendingQuestions />
       <LiveNow />
       <PendingRegistrations />
       <section>

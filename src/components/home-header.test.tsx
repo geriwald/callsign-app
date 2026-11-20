@@ -43,7 +43,11 @@ describe("HomeHeader", () => {
 
   it("shows the dashboard navigation to a signed-in owner", async () => {
     mockedFetcher.mockImplementation(async (path: string) =>
-      path === "/v1/me" ? { owner } : { holds: [], pending: 0 },
+      path === "/v1/me"
+        ? { owner }
+        : String(path).startsWith("/v1/questions")
+          ? { questions: [] }
+          : { holds: [], pending: 0 },
     );
     renderHeader();
     expect(await screen.findByRole("link", { name: "Connections" })).toBeTruthy();
@@ -62,18 +66,26 @@ describe("PublicHeader", () => {
 describe("DashboardHeader on a phone", () => {
   beforeEach(() => mockedFetcher.mockReset());
 
-  it("folds the navigation into a menu button", async () => {
+  it("keeps Agents, Questions and Approvals in the bar and folds the rest into a menu", async () => {
     mockedFetcher.mockImplementation(async (path: string) =>
-      path === "/v1/me" ? { owner } : { holds: [], pending: 0 },
+      path === "/v1/me"
+        ? { owner }
+        : String(path).startsWith("/v1/questions")
+          ? { questions: [] }
+          : { holds: [], pending: 0 },
     );
     renderHeader();
-    const button = await screen.findByRole("button", { name: "Menu" });
-    expect(button.getAttribute("aria-expanded")).toBe("false");
+    const bar = await screen.findByRole("navigation", { name: "Phone" });
+    expect(bar.textContent).toContain("Agents");
+    expect(bar.textContent).toContain("Questions");
+    expect(bar.textContent).toContain("Approvals");
+    const button = screen.getByRole("button", { name: "Menu" });
     expect(screen.queryByRole("navigation", { name: "Menu" })).toBeNull();
     button.click();
     const menu = await screen.findByRole("navigation", { name: "Menu" });
-    expect(menu.textContent).toContain("Connections");
-    expect(menu.textContent).toContain("Sign out");
-    expect(button.getAttribute("aria-expanded")).toBe("true");
+    for (const label of ["Connections", "Contacts", "Account", "Sign out"]) {
+      expect(menu.textContent).toContain(label);
+    }
+    expect(menu.textContent).not.toContain("Questions");
   });
 });

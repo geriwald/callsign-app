@@ -1,13 +1,11 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { api, type OwnerQuestion } from "@/lib/api";
 import { timeAgo } from "@/lib/format";
-import { Button, Card, ErrorNote, Textarea } from "../ui";
-import { useApi, useLiveEvents } from "./hooks";
+import { Button, ErrorNote, Textarea } from "../ui";
 
-function QuestionRow({
+export function QuestionRow({
   question,
   highlighted,
   onAnswered,
@@ -89,37 +87,5 @@ function QuestionRow({
         </div>
       </form>
     </li>
-  );
-}
-
-export function PendingQuestions() {
-  const highlighted = useSearchParams().get("question");
-  const { data, mutate } = useApi<{ questions: OwnerQuestion[] }>("/v1/questions?status=open");
-
-  useLiveEvents((event) => {
-    if (event.type === "owner.asked" || event.type === "owner.answered") void mutate();
-  });
-
-  if (!data?.questions.length) return null;
-
-  return (
-    <Card className="border-signal/30">
-      <header className="border-b border-white/5 px-4 py-3 sm:px-5">
-        <h2 className="text-sm font-medium text-white">Your agents are asking</h2>
-        <p className="mt-0.5 text-xs text-zinc-500">
-          They asked before deciding something on your behalf. Answers reach them right away.
-        </p>
-      </header>
-      <ul className="divide-y divide-white/5">
-        {data.questions.map((question) => (
-          <QuestionRow
-            key={question.id}
-            question={question}
-            highlighted={question.id === highlighted}
-            onAnswered={() => mutate()}
-          />
-        ))}
-      </ul>
-    </Card>
   );
 }
