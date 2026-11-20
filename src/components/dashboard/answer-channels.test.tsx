@@ -4,7 +4,7 @@ import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, fetcher, type Owner, type PushDevice } from "@/lib/api";
 import { subscribeDevice } from "@/lib/web-push";
-import { AnswerSettings } from "./answer-channels";
+import { AnswerSettings, PushTestConfirm } from "./answer-channels";
 import { OwnerContext } from "./hooks";
 
 let search = new URLSearchParams();
@@ -52,6 +52,7 @@ function renderWith(owner: Owner) {
   return render(
     <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
       <OwnerContext.Provider value={owner}>
+        <PushTestConfirm />
         <AnswerSettings />
       </OwnerContext.Provider>
     </SWRConfig>,

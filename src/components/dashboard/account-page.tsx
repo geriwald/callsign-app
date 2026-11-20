@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import { useSWRConfig } from "swr";
 import { api } from "@/lib/api";
 import { site } from "@/lib/site";
 import { Button, ButtonLink, Card, ErrorNote, Input, Toggle } from "../ui";
 import { ForkFrame } from "../instance";
-import { AnswerSettings } from "./answer-channels";
+import { AnswerSettings, PushTestConfirm } from "./answer-channels";
 import { useOwner } from "./hooks";
 import { PasskeysCard } from "./passkeys-card";
 
@@ -165,6 +165,10 @@ export function AccountPage() {
         <h1 className="text-2xl font-semibold tracking-tight text-white">Account</h1>
         <p className="mt-1 text-sm text-zinc-500">Signed in as {owner.email}.</p>
       </div>
+
+      <Suspense>
+        <PushTestConfirm />
+      </Suspense>
 
       <Card className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
         <div className="max-w-xl">

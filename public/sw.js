@@ -1,7 +1,9 @@
 // Callsign service worker: shows push notifications and opens the dashboard when one is tapped.
 // No offline cache on purpose: the dashboard always talks to the live API.
 
+const VERSION = "0.6.3";
 const PENDING_CACHE = "callsign-pending-navigation";
+const DIAG_KEY = "/__last-click";
 const PENDING_KEY = "/__pending-navigation";
 const PENDING_TTL_MS = 60_000;
 
@@ -43,10 +45,17 @@ self.addEventListener("notificationclick", (event) => {
   const url = new URL(event.notification.data?.url || "/dashboard", self.location.origin);
   event.waitUntil(
     (async () => {
+      // Saved first, whatever happens next: iOS may list no window and only bring the app back.
+      await savePending(url.href);
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       const open = windows.find((client) => new URL(client.url).origin === url.origin);
+      await saveDiagnostic({
+        at: new Date().toISOString(),
+        path: open ? "window" : "openWindow",
+        windows: windows.length,
+        url: url.pathname + url.search,
+      });
       if (!open) return self.clients.openWindow(url.href);
-      await savePending(url.href);
       // Best effort: a page already awake navigates now, a sleeping one asks when it wakes up.
       open.postMessage({ type: "callsign:navigate", url: url.href });
       await open.focus().catch(() => undefined);
@@ -54,7 +63,26 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
+async function saveDiagnostic(entry) {
+  const cache = await caches.open(PENDING_CACHE);
+  await cache.put(DIAG_KEY, new Response(JSON.stringify(entry)));
+}
+
 self.addEventListener("message", (event) => {
+  if (event.data?.type === "callsign:diagnostic?") {
+    event.waitUntil(
+      (async () => {
+        const cache = await caches.open(PENDING_CACHE);
+        const last = await cache.match(DIAG_KEY);
+        event.source?.postMessage({
+          type: "callsign:diagnostic",
+          version: VERSION,
+          lastClick: last ? await last.json() : null,
+        });
+      })(),
+    );
+    return;
+  }
   if (event.data?.type !== "callsign:pending?") return;
   event.waitUntil(
     (async () => {

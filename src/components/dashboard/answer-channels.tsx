@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useSWRConfig } from "swr";
 import { api, type PushDevice } from "@/lib/api";
 import {
@@ -411,6 +411,42 @@ function DeviceRow({ device, onChanged }: { device: PushDevice; onChanged: () =>
   );
 }
 
+type Diagnostic = {
+  version: string;
+  lastClick: { at: string; path: string; windows: number; url: string } | null;
+};
+
+// Shows what the service worker saw on the last notification tap, to debug it from a screenshot.
+function PushDiagnostics() {
+  const [controlled, setControlled] = useState<boolean | null>(null);
+  const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const worker = navigator.serviceWorker;
+    function onMessage(event: MessageEvent) {
+      const data = event.data as ({ type?: string } & Diagnostic) | null;
+      if (data?.type === "callsign:diagnostic") setDiagnostic(data);
+    }
+    worker.addEventListener("message", onMessage);
+    void worker.ready.then((registration) => {
+      setControlled(worker.controller !== null);
+      registration.active?.postMessage({ type: "callsign:diagnostic?" });
+    });
+    return () => worker.removeEventListener("message", onMessage);
+  }, []);
+
+  if (controlled === null) return null;
+  const click = diagnostic?.lastClick;
+  return (
+    <p className="font-mono text-[11px] leading-relaxed text-zinc-600">
+      worker {diagnostic?.version ?? "?"} · {controlled ? "controls this page" : "no controller"}
+      {click &&
+        ` · last tap ${new Date(click.at).toLocaleTimeString()} via ${click.path} (${click.windows} window${click.windows === 1 ? "" : "s"}) → ${click.url}`}
+    </p>
+  );
+}
+
 function InstallSteps() {
   const kind = platform();
   if (kind === "ios") {
@@ -489,12 +525,13 @@ function WebAppCard() {
           ))}
         </ul>
       )}
+      <PushDiagnostics />
     </ChannelCard>
   );
 }
 
 // A tapped "Test question" notification opens this page with its token: that proves the device.
-function PushTestConfirm() {
+export function PushTestConfirm() {
   const params = useSearchParams();
   const router = useRouter();
   const { mutate } = useSWRConfig();
@@ -542,9 +579,6 @@ export function AnswerSettings() {
   const owner = useOwner();
   return (
     <div className="grid gap-6">
-      <Suspense>
-        <PushTestConfirm />
-      </Suspense>
       <ForkFrame>
         <AnswerCard />
       </ForkFrame>
