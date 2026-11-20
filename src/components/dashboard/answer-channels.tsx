@@ -413,7 +413,7 @@ function DeviceRow({ device, onChanged }: { device: PushDevice; onChanged: () =>
 
 type Diagnostic = {
   version: string;
-  lastClick: { at: string; path: string; windows: number; url: string } | null;
+  log: { at: string; step: string; detail?: string }[];
 };
 
 // Shows what the service worker saw on the last notification tap, to debug it from a screenshot.
@@ -437,13 +437,18 @@ function PushDiagnostics() {
   }, []);
 
   if (controlled === null) return null;
-  const click = diagnostic?.lastClick;
   return (
-    <p className="font-mono text-[11px] leading-relaxed text-zinc-600">
-      worker {diagnostic?.version ?? "?"} · {controlled ? "controls this page" : "no controller"}
-      {click &&
-        ` · last tap ${new Date(click.at).toLocaleTimeString()} via ${click.path} (${click.windows} window${click.windows === 1 ? "" : "s"}) → ${click.url}`}
-    </p>
+    <div className="font-mono text-[11px] leading-relaxed text-zinc-600">
+      <p>
+        worker {diagnostic?.version ?? "?"} · {controlled ? "controls this page" : "no controller"}
+      </p>
+      {diagnostic?.log.map((entry) => (
+        <p key={`${entry.at}-${entry.step}`} className="break-all">
+          {new Date(entry.at).toLocaleTimeString()} {entry.step}
+          {entry.detail ? ` · ${entry.detail}` : ""}
+        </p>
+      ))}
+    </div>
   );
 }
 
