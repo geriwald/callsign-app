@@ -306,8 +306,8 @@ function TelegramCard() {
     <ChannelCard title="Telegram">
       <p className="text-sm text-zinc-500">
         {linked
-          ? "Connected. Tap an option or reply to answer, and freeze an agent with one tap."
-          : "Answer your agents and freeze an agent with one tap, without opening email."}
+          ? "Connected. Telegram tells you when an agent asks you something, and lets you freeze an agent with one tap."
+          : "Get told on Telegram when an agent asks you something, and freeze an agent with one tap."}
       </p>
       <div>
         {linked ? (
