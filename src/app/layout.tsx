@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@/components/analytics";
+import { NotificationNavigator } from "@/components/notification-navigator";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-ink font-sans text-zinc-100">
         {children}
         <Analytics />
+        <NotificationNavigator />
       </body>
     </html>
   );

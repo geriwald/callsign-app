@@ -26,8 +26,10 @@ self.addEventListener("notificationclick", (event) => {
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       const open = windows.find((client) => new URL(client.url).origin === url.origin);
       if (open) {
-        await open.navigate(url.href);
-        return open.focus();
+        // Safari has no WindowClient.navigate(): the page navigates itself on this message.
+        await open.focus();
+        open.postMessage({ type: "callsign:navigate", url: url.href });
+        return;
       }
       return self.clients.openWindow(url.href);
     })(),
